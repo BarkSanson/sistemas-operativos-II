@@ -5,17 +5,20 @@ int main(int argc, char **argv) {
     int nbloques;
     unsigned char buf[BLOCKSIZE];
 
-    if(argc != 3) return 1;
+    if(argc != 3) {
+        fprintf(stderr, "Número de argumentos inválido: son necesarios 2 argumentos con la forma \n\tmi_mkfs {path} {número de bloques a escribir}");
+        return 1;
+    }
 
     // Montamos el dispositivo virtual
-    path = argv[2];
+    path = argv[1];
     bmount(path);
 
     // Escribimos los n bloques en el fichero
     // inicializados a 0
     nbloques = atoi(argv[2]);
     if(nbloques == 0) {
-        fprintf(stderr, "Numero de bloques invalido");
+        fprintf(stderr, "Número de bloques inválido");
         return 1;
     }
 

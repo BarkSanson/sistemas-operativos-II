@@ -1,8 +1,9 @@
-#include "bloques.h";
+#include "bloques.h"
 
 static int fd;
 
 int bmount(const char *camino) {
+    umask(000);
     fd = open(camino, O_RDWR | O_CREAT, 0666);
     if(fd == -1) {
         fprintf(stderr, "Error %d montando el fichero: %s", errno, strerror(errno));
@@ -17,7 +18,7 @@ int bumount(){
 
     error = close(fd);
     if(error == -1){
-        fprinf(stderr,"Error %d desmontando el sistema de ficeros: %s", errno, strerror(errno));
+        fprintf(stderr,"Error %d desmontando el sistema de ficeros: %s", errno, strerror(errno));
         return EXIT_FAILURE;
     }
 
@@ -34,7 +35,7 @@ int bwrite(unsigned int nbloque, const void *buf) {
     }
 
     error = write(fd, buf, BLOCKSIZE);
-    if(error = -1) {
+    if(error == -1) {
         fprintf(stderr, "Error %d escribiendo bloque: %s", errno, strerror(errno));
         return EXIT_FAILURE;
     }
