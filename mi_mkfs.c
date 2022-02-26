@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     }
 
     // Desmontamos el dispositivo virtual
-    bumount(path);
+    bumount();
 
     return 0;
 }
