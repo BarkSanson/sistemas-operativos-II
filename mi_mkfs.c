@@ -1,4 +1,4 @@
-#include "bloques.h"
+#include "ficheros_basico.h"
 
 int main(int argc, char **argv) {
     char *path;
@@ -30,6 +30,8 @@ int main(int argc, char **argv) {
 
     // Desmontamos el dispositivo virtual
     bumount();
+
+    printf("TamMB: %d", tamMB(nbloques));
 
     return 0;
 }
