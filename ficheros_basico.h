@@ -1,3 +1,6 @@
+#include <time.h>   // time_t
+#include <limits.h> // UINT_MAX
+
 #include "bloques.h"
 
 #define posSB 0
