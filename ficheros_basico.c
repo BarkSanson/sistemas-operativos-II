@@ -1,5 +1,7 @@
 #include "ficheros_basico.h"
 
+int nbloques = 0; //!!!
+
 int tamMB(unsigned int nbloques) {
     // Calculamos el tamaño del MB con
     // la división entera
@@ -8,7 +10,7 @@ int tamMB(unsigned int nbloques) {
     // Si el módulo es mayor que 0,
     // significa que necesitamos un bloque
     // más
-    if(((nbloques / 8) / BLOCKSIZE) > 0) {
+    if(((nbloques / 8) % BLOCKSIZE) > 0) {
         tam++;
     }
 
@@ -16,8 +18,20 @@ int tamMB(unsigned int nbloques) {
 }
 
 int tamAI(unsigned int ninodos) {
-    // TODO
-    return 0;
+    int tam = 0;
+    
+    //sabiendo que el numero de inodos se ha calculado
+    //ya de forma heurística el tamaño de este bloque será
+
+    tam = (ninodos*INODOSIZE)/BLOCKSIZE;
+
+    //vemos si necesitamos un bloque más o no
+
+    if(((ninodos*INODOSIZE) % BLOCKSIZE) != 0){
+        tam++;
+    }
+
+    return tam;
 }
 
 int initSB(unsigned int nbloques, unsigned int ninodos) {
@@ -39,6 +53,27 @@ int initSB(unsigned int nbloques, unsigned int ninodos) {
     // Escribimos el superbloque en su posición y
     // comprobamos si ha habido algun error
     if(bwrite(posSB, &SB) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    return EXIT_SUCCESS;
+}
+
+int initMB(){
+    int bloquesMB = tamMB(nbloques);
+    int bloquesMetadatos = tamAI(nbloques) + bloquesMB + tamSB;
+    unsigned char buf[BLOCKSIZE];
+
+    //Ponemos todos los bloques del
+    //MB a 0, nos posicionamos en el inicio
+    //del bloque de MB
+    memset(*buf,0,BLOCKSIZE);
+    for(int i=0; i<bloquesMB; i++){
+        bwrite(i+posSB,*buf);
+    }
+
+    //ahora ponemos los bits a 1 del
+    //mapa de bits que se corresponden con metadatos
+    memset(*buf,1,bloquesMetadatos);
+    bwrite(posSB,*buf);
 
     return EXIT_SUCCESS;
 }
