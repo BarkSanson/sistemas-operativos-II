@@ -26,16 +26,13 @@ int bumount(){
 }
 
 int bwrite(unsigned int nbloque, const void *buf) {
-    int error;
 
-    error = lseek(fd, nbloque*BLOCKSIZE, SEEK_SET);
-    if(error == -1) {
-        fprintf(stderr, "Error %d escribiendo bloque: %s", errno, strerror(errno));
+    if(lseek(fd, nbloque * BLOCKSIZE, SEEK_SET) == -1) {
+        fprintf(stderr, "Error %d moviendo el puntero para escribir un bloque: %s", errno, strerror(errno));
         return EXIT_FAILURE;
     }
 
-    error = write(fd, buf, BLOCKSIZE);
-    if(error == -1) {
+    if(write(fd, buf, BLOCKSIZE) == -1) {
         fprintf(stderr, "Error %d escribiendo bloque: %s", errno, strerror(errno));
         return EXIT_FAILURE;
     }
@@ -45,16 +42,16 @@ int bwrite(unsigned int nbloque, const void *buf) {
 }
 
 int bread(unsigned int nbloque, void *buf) {
-    int error;
 
-    lseek(fd, nbloque*BLOCKSIZE, SEEK_SET);
-    error = read(fd, buf, BLOCKSIZE);
+    if(lseek(fd, nbloque * BLOCKSIZE, SEEK_SET) == -1) {
+        fprintf(stderr, "Error %d moviendo el puntero para leer un bloque: %s", errno, strerror(errno));
+        return EXIT_FAILURE;
+    }
 
-    if(error != BLOCKSIZE){
-        fprintf(stderr, "Error %d leyendo el bloque: %d", errno, nbloque);
+    if(read(fd, buf, BLOCKSIZE) == -1) {
+        fprintf(stderr, "Error %d leyendo el bloque: %s", errno, strerror(errno));
         return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
-
 }

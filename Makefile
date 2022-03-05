@@ -1,11 +1,11 @@
 CC=gcc
 CFLAGS=-c -g -Wall -std=gnu99
 
-SOURCES=mi_mkfs.c bloques.c ficheros_basico.c
+SOURCES=mi_mkfs.c bloques.c ficheros_basico.c leer_sf.c
 BUILD_DIR=build/
 LIBRARIES=$(BUILD_DIR)bloques.o $(BUILD_DIR)ficheros_basico.o
 INCLUDES=bloques.h ficheros_basico.h
-PROGRAMS=mi_mkfs
+PROGRAMS=mi_mkfs leer_sf
 OBJECTS=$(SOURCES:.c=.o)
 
 all: $(OBJECTS) $(PROGRAMS)

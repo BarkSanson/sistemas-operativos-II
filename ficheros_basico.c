@@ -1,7 +1,5 @@
 #include "ficheros_basico.h"
 
-int nbloques = 0; //!!!
-
 int tamMB(unsigned int nbloques) {
     // Calculamos el tamaño del MB con
     // la división entera
@@ -57,23 +55,37 @@ int initSB(unsigned int nbloques, unsigned int ninodos) {
     return EXIT_SUCCESS;
 }
 
-int initMB(){
-    int bloquesMB = tamMB(nbloques);
-    int bloquesMetadatos = tamAI(nbloques) + bloquesMB + tamSB;
+int initMB() {
+    struct superbloque* SB;
     unsigned char buf[BLOCKSIZE];
+
+    SB = malloc(sizeof(struct superbloque));
+
+    if(bread(posSB, SB) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    int bloquesMB = SB->posUltimoBloqueMB - SB->posPrimerBloqueMB;
+    int bloquesMetadatos = SB->posUltimoBloqueAI + 1;
 
     //Ponemos todos los bloques del
     //MB a 0, nos posicionamos en el inicio
     //del bloque de MB
-    memset(buf,0,BLOCKSIZE);
-    for(int i=0; i<bloquesMB; i++){
-        bwrite(i+posSB, buf);
+    memset(buf, 0, BLOCKSIZE);
+    for(int i = 1; i<bloquesMB; i++){
+        if(bwrite(i, buf) == EXIT_FAILURE) return EXIT_FAILURE;
     }
 
     //ahora ponemos los bits a 1 del
     //mapa de bits que se corresponden con metadatos
     memset(buf,1,bloquesMetadatos);
-    bwrite(posSB, buf);
+    if(bwrite(posSB, buf) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    // Ya que hemos marcado en el mapa de bits los bloques
+    // ya ocupados, tenemos que actualizar la cantidad 
+    // de bloques libres en el superbloque
+    SB->cantBloquesLibres = SB->cantBloquesLibres - bloquesMetadatos;
+    if(bwrite(posSB, SB) == EXIT_FAILURE) return EXIT_FAILURE;
+
+    free(SB);
 
     return EXIT_SUCCESS;
 }
@@ -88,6 +100,7 @@ int initAI() {
     struct superbloque* SB;
     struct inodo inodos[BLOCKSIZE/INODOSIZE];
 
+    SB = malloc(sizeof(struct superbloque));
     // Leemos el superbloque
     if(bread(posSB, SB) == EXIT_FAILURE) return EXIT_FAILURE;
 
@@ -115,6 +128,8 @@ int initAI() {
         // dispositivo virtual
         if(bwrite(i, inodos) == EXIT_FAILURE) return EXIT_FAILURE;
     }
+
+    free(SB);
 
     return EXIT_SUCCESS;
 }
