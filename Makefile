@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -g -Wall -std=gnu99
+CFLAGS=-c -g -Wall -std=gnu99 -lm
 
 SOURCES=mi_mkfs.c bloques.c ficheros_basico.c leer_sf.c
 BUILD_DIR=build/
@@ -11,7 +11,7 @@ OBJECTS=$(SOURCES:.c=.o)
 all: $(OBJECTS) $(PROGRAMS)
 
 $(PROGRAMS): $(LIBRARIES) $(INCLUDES)
-	$(CC) $(LDFLAGS) $(LIBRARIES) $(BUILD_DIR)$@.o -o $(BUILD_DIR)$@
+	$(CC) $(LDFLAGS) -lm $(LIBRARIES) $(BUILD_DIR)$@.o -o $(BUILD_DIR)$@
 
 %.o: %.c $(INCLUDES)
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)$@ -c $<

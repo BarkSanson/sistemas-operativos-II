@@ -2,6 +2,8 @@
 
 int main(int argc, char **argv) {
     struct superbloque* SB = malloc(sizeof(struct superbloque));
+    struct inodo* inodo = malloc(sizeof(struct inodo));
+
     int nbloques;
 
     bmount(argv[1]);
@@ -10,6 +12,7 @@ int main(int argc, char **argv) {
 
     initSB(nbloques, nbloques/4);
     initMB();
+    initAI();
 
     if(bread(posSB, SB) == EXIT_FAILURE) {
         bumount();

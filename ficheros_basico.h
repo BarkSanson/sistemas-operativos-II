@@ -1,5 +1,6 @@
 #include <time.h>   // time_t
 #include <limits.h> // UINT_MAX
+#include <math.h>   // pow()
 
 #include "bloques.h"
 
