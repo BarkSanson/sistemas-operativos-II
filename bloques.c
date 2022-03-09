@@ -2,6 +2,13 @@
 
 static int fd;
 
+/**
+ * Inicializa el flujo de datos, nuestro disco
+ * 
+ * @param   camino  ruta donde establecer el fd
+ * @returns     EXIT_SUCCESS si ha funcionado bien
+ *              EXIT_FAILURE si ha habido un error
+*/
 int bmount(const char *camino) {
     umask(000);
     fd = open(camino, O_RDWR | O_CREAT, 0666);
@@ -13,6 +20,13 @@ int bmount(const char *camino) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * Cierra el descriptor de fichero, y por tanto nuestro
+ * sistema de ficheros
+ * 
+ * @returns     EXIT_SUCCESS si ha funcionado bien
+ *              EXIT_FAILURE si ha habido un error     
+*/
 int bumount(){
     int error;
 
@@ -24,7 +38,14 @@ int bumount(){
 
     return EXIT_SUCCESS;
 }
-
+/**
+ * Escribe un contenido en un bloque elegido
+ * 
+ * @param   nbloque numero de bloque a escribir
+ * @param   buf contenido a escribir en el bloque
+ * @returns     EXIT_SUCCESS si ha funcionado bien
+ *              EXIT_FAILURE si ha habido un error 
+*/
 int bwrite(unsigned int nbloque, const void *buf) {
 
     if(lseek(fd, nbloque * BLOCKSIZE, SEEK_SET) == -1) {
@@ -40,7 +61,14 @@ int bwrite(unsigned int nbloque, const void *buf) {
     return EXIT_SUCCESS;
 
 }
-
+/**
+ * Lee el contenido de un bloque
+ * 
+ * @param   nbloque bloque elegido para leer
+ * @param   buf buffer donde moveremos el contenido leido
+ * @returns     EXIT_SUCCESS si ha funcionado bien
+ *              EXIT_FAILURE si ha habido un error 
+*/
 int bread(unsigned int nbloque, void *buf) {
 
     if(lseek(fd, nbloque * BLOCKSIZE, SEEK_SET) == -1) {
