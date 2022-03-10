@@ -114,6 +114,9 @@ int initMB() {
         bytesNecesarios -= (bloquesNecesarios - 1) * BLOCKSIZE;
     }
 
+    // Reseteamos el buffer
+    memset(buf, 0, BLOCKSIZE);
+
     // Todos los bytes que vayan completos
     // los escribimos todos a 1
     for(int i = 0; i < bytesNecesarios; i++) {

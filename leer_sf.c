@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     }
 
     printf("Ejecutando test leer_sf.c\n");
-    printf("Datos del superbloque:");
+    printf("Datos del superbloque:\n");
     printf("posPrimerBLoqueMB = %d\n", SB->posPrimerBloqueMB);
     printf("posUltimoBLoqueMB = %d\n", SB->posUltimoBloqueMB);
     printf("posPrimerBloqueAI = %d\n", SB->posPrimerBloqueAI);
