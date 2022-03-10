@@ -64,6 +64,7 @@ int initSB(unsigned int nbloques, unsigned int ninodos) {
     SB.posUltimoBloqueAI = SB.posPrimerBloqueAI + tamAI(ninodos) - 1;
     SB.posPrimerBloqueDatos = SB.posUltimoBloqueAI + 1;
     SB.posUltimoBloqueDatos = nbloques - 1;
+    SB.posInodoRaiz = 0;
     SB.posPrimerInodoLibre = 0; // Cambiará en el Nivel 3
     SB.cantBloquesLibres = nbloques;
     SB.cantInodosLibres = ninodos;
