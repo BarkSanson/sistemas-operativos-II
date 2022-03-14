@@ -236,7 +236,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     }
 }
 
-int leer_bit(unsigned int nbloque){
+char leer_bit(unsigned int nbloque){
     //declaramos SB y leemos los valores del mismo
     struct superbloque* SB;
     SB = malloc(sizeof(struct superbloque));
@@ -263,4 +263,34 @@ int leer_bit(unsigned int nbloque){
     mascara >>= (7 - posbit);
 
     return mascara;  
+}
+
+int reservar_bloque(){
+    //reservamos memoria para el superbloque y lo leemos
+    struct superbloque* SB;
+    SB = malloc(sizeof(struct superbloque));
+    if(bread(posSB, SB) == EXIT_FAILURE){
+        return EXIT_FAILURE;
+    }
+    //miramos si queda algun bloque libre
+    if(SB->cantBloquesLibres == 0){
+        printf("No quedan bloques libres");
+        return EXIT_FAILURE;
+    }
+
+    unsigned char buffer[BLOCKSIZE];
+    unsigned char aux[BLOCKSIZE];
+    memset(aux,255,BLOCKSIZE);
+    //conseguimos el primer bloque de MB
+    int nbloqueabs = SB->posPrimerBloqueMB;
+    //y los bloques a recorrer, lo hacemos asi para ahorrar
+    //uso de la cpu invocando a tamMB()
+    int tamMB = SB->posPrimerBloqueAI - SB->posPrimerBloqueMB;
+
+    //vamos comparando todos los blqoues a ver si hay algoç
+    //en alguno de ellos
+    for(int i=0; i<tamMB; i++){
+        bread(nbloqueabs + i , buffer);
+        memcmp(buffer,aux);
+    }
 }
