@@ -197,3 +197,69 @@ int initAI() {
 
     return EXIT_SUCCESS;
 }
+
+int escribir_bit(unsigned int nbloque, unsigned int bit){
+    //declaramos SB y leemos los valores del mismo
+    struct superbloque* SB;
+    SB = malloc(sizeof(struct superbloque));
+    if(bread(posSB, SB) == EXIT_FAILURE){
+        return EXIT_FAILURE;
+    }
+    //en que bloque del MB estamos (ABSOLUTO)
+    int nbloqueMB = nbloque/BLOCKSIZE;
+    int nbloqueabs = SB->posPrimerBloqueMB + nbloqueMB;
+    //en que byte del bloque estamos y lo mismo con el bit
+    int posByte = nbloque/8;
+    posByte = posByte % BLOCKSIZE;
+    int posbit = nbloque%8;
+
+    //buffer donde leeremos el bloque del mapa de bits
+    unsigned char bufferMB[BLOCKSIZE];
+    bread(nbloqueabs, bufferMB);
+    //preparamos el byte a poner en uno
+    unsigned char mascara = 1000000;
+    mascara >>= posbit;
+
+    //en funcion del caso marcamos como escrito
+    //o como borrado
+    if(bit == 1){
+        bufferMB[posByte] |= mascara;
+    } else {
+        bufferMB[posByte] &= ~mascara;
+    }
+
+    if(bwrite(nbloqueabs,bufferMB) == EXIT_FAILURE){
+        return EXIT_FAILURE;
+    } else {
+        return EXIT_SUCCESS;
+    }
+}
+
+int leer_bit(unsigned int nbloque){
+    //declaramos SB y leemos los valores del mismo
+    struct superbloque* SB;
+    SB = malloc(sizeof(struct superbloque));
+    if(bread(posSB, SB) == EXIT_FAILURE){
+        return EXIT_FAILURE;
+    }
+    //en que bloque del MB estamos (ABSOLUTO)
+    int nbloqueMB = nbloque/BLOCKSIZE;
+    int nbloqueabs = SB->posPrimerBloqueMB + nbloqueMB;
+    //en que byte del bloque estamos y lo mismo con el bit
+    int posByte = nbloque/8;
+    posByte = posByte % BLOCKSIZE;
+    int posbit = nbloque%8;
+
+    //buffer donde leeremos el bloque del mapa de bits
+    unsigned char bufferMB[BLOCKSIZE];
+    if(bread(nbloqueabs, bufferMB) == EXIT_FAILURE){
+        return EXIT_FAILURE;
+    }
+
+    unsigned char mascara = 128; 
+    mascara >>= posbit;          
+    mascara &= bufferMB[posByte];
+    mascara >>= (7 - posbit);
+
+    return mascara;  
+}
