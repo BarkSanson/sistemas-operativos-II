@@ -199,11 +199,21 @@ int initAI() {
     return EXIT_SUCCESS;
 }
 
+/**
+ * @brief escribe un valor determinado dado por parámetro
+ * en un bit del mapa de bits
+ * 
+ * @param nbloque numero de bloque a cambiar su valor en el MB
+ * @param bit valor a actualizar el bloque
+ * @return int devuelve EXIT_FAILURE si da error, o EXIT_SUCCESS
+ * si se ha escrito de forma correcta
+ */
 int escribir_bit(unsigned int nbloque, unsigned int bit){
     //declaramos SB y leemos los valores del mismo
     struct superbloque* SB;
     SB = malloc(sizeof(struct superbloque));
     if(bread(posSB, SB) == EXIT_FAILURE){
+        free(SB);
         return EXIT_FAILURE;
     }
     //en que bloque del MB estamos (ABSOLUTO)
@@ -230,17 +240,27 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     }
 
     if(bwrite(nbloqueabs,bufferMB) == EXIT_FAILURE){
+        free(SB);
         return EXIT_FAILURE;
     } else {
+        free(SB);
         return EXIT_SUCCESS;
     }
 }
-
+/**
+ * @brief lee el valor que representa un bloque en nuestro MB
+ * 
+ * @param nbloque bloque a leer en el MB
+ * @return char devuelve EXIT_FAILURE si ha habido un error
+ * en el proceso de lectura, o el valor en el que se encuentra el estado
+ * de nuestro bloque en el MB
+ */
 char leer_bit(unsigned int nbloque){
     //declaramos SB y leemos los valores del mismo
     struct superbloque* SB;
     SB = malloc(sizeof(struct superbloque));
     if(bread(posSB, SB) == EXIT_FAILURE){
+        free(SB);
         return EXIT_FAILURE;
     }
     //en que bloque del MB estamos (ABSOLUTO)
@@ -254,6 +274,7 @@ char leer_bit(unsigned int nbloque){
     //buffer donde leeremos el bloque del mapa de bits
     unsigned char bufferMB[BLOCKSIZE];
     if(bread(nbloqueabs, bufferMB) == EXIT_FAILURE){
+        free(SB);
         return EXIT_FAILURE;
     }
 
@@ -262,9 +283,16 @@ char leer_bit(unsigned int nbloque){
     mascara &= bufferMB[posByte];
     mascara >>= (7 - posbit);
 
+    free(SB);
     return mascara;  
 }
 
+/**
+ * @brief reservamos el primer bloque libre de nuestro MB para
+ * 
+ * @return int devuelve EXIT_FAILURE si ha habido un error en su ejecución
+ * o el numero del primer bloque libre en nuestro sistema
+ */
 int reservar_bloque(){
     //reservamos memoria para el superbloque y lo leemos
     struct superbloque* SB;
@@ -280,6 +308,7 @@ int reservar_bloque(){
 
     unsigned char buffer[BLOCKSIZE];
     unsigned char aux[BLOCKSIZE];
+    unsigned char mascara = 128;
     memset(aux,255,BLOCKSIZE);
     //conseguimos el primer bloque de MB
     int nbloqueabs = SB->posPrimerBloqueMB;
@@ -289,8 +318,42 @@ int reservar_bloque(){
 
     //vamos comparando todos los blqoues a ver si hay algoç
     //en alguno de ellos
+    int posbit = 0;
+    int nbloque = 0;
     for(int i=0; i<tamMB; i++){
         bread(nbloqueabs + i , buffer);
-        memcmp(buffer,aux);
+        //si son diferentes quiere decir que habrá un bit
+        //libre en el bloque traido del MB
+        if(memcmp(buffer,aux,BLOCKSIZE) != 0){
+            //recorremos ahora todo el bloque en busca de un bit libre
+            for(int posByte=0;i<BLOCKSIZE;posByte++){
+                //el byte tiene al menos un bit vacío
+                if(buffer[i] != 255){
+                    while(buffer[posByte] & mascara){
+                        buffer[posByte] <<= 1;
+                        posbit++;
+                    }
+                    //encontramos el numero de bloque definitivo
+                    nbloque = ((nbloqueabs - SB->posPrimerBloqueMB)*BLOCKSIZE+posByte)*8 + posbit;
+                    if(escribir_bit(nbloque,1) == EXIT_FAILURE){
+                        free(SB);
+                        return EXIT_FAILURE;
+                    }
+                    SB->cantBloquesLibres--;
+                    //reseteamos el bloque a reservar por si había datos
+                    memset(aux,0,BLOCKSIZE);
+                    if(bwrite(nbloque,aux) == EXIT_FAILURE){
+                        free(SB);
+                        return EXIT_FAILURE;
+                    }
+                    free(SB);
+                    return nbloque;
+                }
+            }
+        }
     }
+    //si ha llegado hasta aqui es porque no hay bloques libres
+    //y por ende no se puede reservar ningún bloque
+    free(SB);
+    return EXIT_FAILURE;
 }
