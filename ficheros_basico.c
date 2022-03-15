@@ -328,7 +328,7 @@ int reservar_bloque(){
             //recorremos ahora todo el bloque en busca de un bit libre
             for(int posByte=0;i<BLOCKSIZE;posByte++){
                 //el byte tiene al menos un bit vacío
-                if(buffer[i] != 255){
+                if(buffer[posByte] != 255){
                     while(buffer[posByte] & mascara){
                         buffer[posByte] <<= 1;
                         posbit++;
