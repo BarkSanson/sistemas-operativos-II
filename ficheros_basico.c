@@ -81,7 +81,7 @@ int initSB(unsigned int nbloques, unsigned int ninodos) {
 /**
  * Inicializa el mapa de bits
  * 
- * @returns:        EXIT_FAILURE si ha habido algun error,
+ * @returns         EXIT_FAILURE si ha habido algun error,
  *                  EXIT_SUCCESS de lo contrario
  */
 int initMB() {
@@ -158,7 +158,7 @@ int initMB() {
 /**
  * Inicializa todos los inodos del dispositivo
  * 
- * @returns:        EXIT_FAILURE si ha habido algun error,
+ * @returns         EXIT_FAILURE si ha habido algun error,
  *                  EXIT_SUCCESS de lo contrario
  */
 int initAI() {
@@ -167,14 +167,15 @@ int initAI() {
 
     SB = malloc(sizeof(struct superbloque));
     // Leemos el superbloque
-    if(bread(posSB, SB) == EXIT_FAILURE) return EXIT_FAILURE;
+    if(bread(posSB, SB) == EXIT_FAILURE) {
+        free(SB);
+        return EXIT_FAILURE;
+    }
 
     int contInodos = SB->posPrimerInodoLibre + 1;
 
     // Recorremos todos los bloques de inodos
     for(int i = SB->posPrimerBloqueAI; i <= SB->posUltimoBloqueAI; i++) {
-        // Leemos un bloque
-        if(bread(i, inodos) == EXIT_FAILURE) return EXIT_FAILURE;
 
         // Por cada inodo del bloque, lo inicializamos
         // como libre y lo enlazamos con el siguiente
@@ -191,7 +192,10 @@ int initAI() {
 
         // Escribimos las modificaciones en el
         // dispositivo virtual
-        if(bwrite(i, inodos) == EXIT_FAILURE) return EXIT_FAILURE;
+        if(bwrite(i, inodos) == EXIT_FAILURE) {
+            free(SB);
+            return EXIT_FAILURE;
+        }
     }
 
     free(SB);
@@ -200,13 +204,13 @@ int initAI() {
 }
 
 /**
- * @brief escribe un valor determinado dado por parámetro
+ * Escribe un valor determinado dado por parámetro
  * en un bit del mapa de bits
  * 
- * @param nbloque numero de bloque a cambiar su valor en el MB
- * @param bit valor a actualizar el bloque
- * @return int devuelve EXIT_FAILURE si da error, o EXIT_SUCCESS
- * si se ha escrito de forma correcta
+ * @param   nbloque numero de bloque a cambiar su valor en el MB
+ * @param   bit     valor a actualizar el bloque
+ * @return          devuelve EXIT_FAILURE si da error, o EXIT_SUCCESS
+ *                  si se ha escrito de forma correcta
  */
 int escribir_bit(unsigned int nbloque, unsigned int bit){
     //declaramos SB y leemos los valores del mismo
@@ -248,12 +252,12 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     }
 }
 /**
- * @brief lee el valor que representa un bloque en nuestro MB
+ * Lee el valor que representa un bloque en nuestro MB
  * 
- * @param nbloque bloque a leer en el MB
- * @return char devuelve EXIT_FAILURE si ha habido un error
- * en el proceso de lectura, o el valor en el que se encuentra el estado
- * de nuestro bloque en el MB
+ * @param   nbloque bloque a leer en el MB
+ * @returns         devuelve EXIT_FAILURE si ha habido un error
+ *                  en el proceso de lectura, o el valor en el que se encuentra el estado
+ *                  de nuestro bloque en el MB
  */
 char leer_bit(unsigned int nbloque){
     //declaramos SB y leemos los valores del mismo
@@ -288,10 +292,10 @@ char leer_bit(unsigned int nbloque){
 }
 
 /**
- * @brief reservamos el primer bloque libre de nuestro MB para
+ * Reservamos el primer bloque libre de nuestro MB para
  * 
- * @return int devuelve EXIT_FAILURE si ha habido un error en su ejecución
- * o el numero del primer bloque libre en nuestro sistema
+ * @returns devuelve EXIT_FAILURE si ha habido un error en su ejecución
+ *          o el numero del primer bloque libre en nuestro sistema
  */
 int reservar_bloque(){
     //reservamos memoria para el superbloque y lo leemos
@@ -356,4 +360,51 @@ int reservar_bloque(){
     //y por ende no se puede reservar ningún bloque
     free(SB);
     return EXIT_FAILURE;
+}
+
+// TODO
+int liberar_bloque(unsigned int nbloque);
+
+int escribir_inodo(unsigned int ninodo, struct inodo* inodo) {
+    struct superbloque* SB;
+    struct inodo* inodos;
+    unsigned char buf[BLOCKSIZE];
+    int bloqueRelativoInodo;
+
+    SB = malloc(sizeof(struct superbloque));
+
+    // Calculamos el número relativo de bloque en
+    // el que se encuentra el inodo solicitado
+    bloqueRelativoInodo = ninodo/(BLOCKSIZE/INODOSIZE);
+    if(ninodo%(BLOCKSIZE/INODOSIZE) != 0) bloqueRelativoInodo++;
+
+    // Leemos el bloque solicitado
+    if(bread(SB->posPrimerBloqueAI + bloqueRelativoInodo, buf) == EXIT_FAILURE) {
+        free(SB);
+        return EXIT_FAILURE;
+    }
+
+    inodos = bloque_a_inodos(buf);
+
+
+
+
+
+    free(SB);
+}
+
+/**
+ * Pasa un bloque de inodos a un array de inodos
+ * 
+ * @param   buf     Buffer que contiene un bloque de inodos
+ * @returns         Puntero al array de inodos
+ * 
+ */
+struct inodo* bloque_a_inodos(const unsigned char* buf) {
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    for(int i = 0, j = INODOSIZE; i < BLOCKSIZE/INODOSIZE; i = j + 1, j += INODOSIZE) {
+        memcpy(inodos + i, buf + i, INODOSIZE);
+    }
+
+    return inodos;
 }
