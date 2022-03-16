@@ -347,9 +347,11 @@ int reservar_bloque(){
                     //reseteamos el bloque a reservar por si había datos
                     memset(aux,0,BLOCKSIZE);
                     if(bwrite(nbloque,aux) == EXIT_FAILURE){
+                        bwrite(posSB,SB);
                         free(SB);
                         return EXIT_FAILURE;
                     }
+                    bwrite(posSB,SB);
                     free(SB);
                     return nbloque;
                 }
@@ -362,8 +364,31 @@ int reservar_bloque(){
     return EXIT_FAILURE;
 }
 
-// TODO
-int liberar_bloque(unsigned int nbloque);
+/**
+ * @brief libera un bloque poniendo un 0 en su correspondiente
+ * bit del MB
+ * 
+ * @param nbloque numero de bloque a liberar
+ * @return int numero de bloque liberado
+ */
+int liberar_bloque(unsigned int nbloque){
+    struct superbloque* SB;
+
+    //cogemos los datos del superbloque y liberamos
+    //el bloque en el MB
+    SB = malloc(sizeof(struct superbloque));
+    if(bread(posSB,SB) == EXIT_FAILURE){
+        return EXIT_FAILURE;
+    }
+
+    escribir_bit(nbloque,0);
+
+    //aumentamos el numero de bloques libres en el SB
+    SB->cantBloquesLibres++;
+    bwrite(posSB,SB);
+
+    return nbloque;
+}
 
 int escribir_inodo(unsigned int ninodo, struct inodo* inodo) {
     struct superbloque* SB;
