@@ -94,8 +94,12 @@ int initMB() {
 
     SB = malloc(sizeof(struct superbloque));
 
-    if(bread(posSB, SB) == EXIT_FAILURE) return EXIT_FAILURE;
-
+    if(bread(posSB, SB) == EXIT_FAILURE) {
+        fprintf(stderr, 
+                "[Error en initMB()]: No se ha podido leer el superbloque");
+        free(SB);
+        return EXIT_FAILURE;
+    }
     // Sabiendo que los bloques de los metadatos estarán seguidos,
     // el total de bloques que estos ocuparán será:
     bloquesMetadatos = SB->posUltimoBloqueAI + 1;
@@ -110,7 +114,13 @@ int initMB() {
     if(bloquesNecesarios > 1) {
         memset(buf, 255, BLOCKSIZE);
         for(int i = 1; i < bloquesNecesarios; i++) {
-            if(bwrite(posBloque++, buf) == EXIT_FAILURE) return EXIT_FAILURE;
+            if(bwrite(posBloque++, buf) == EXIT_FAILURE) {
+                fprintf(stderr, 
+                        "[Error en initMB()]: No se ha podido escribir el bloque %d", 
+                        i);
+                free(SB);
+                return EXIT_FAILURE;
+            }
         }
         bytesNecesarios -= (bloquesNecesarios - 1) * BLOCKSIZE;
     }
@@ -142,13 +152,24 @@ int initMB() {
     }
 
     // Escribimos el buffer
-    if(bwrite(posBloque, buf) == EXIT_FAILURE) return EXIT_FAILURE;
+    if(bwrite(posBloque, buf) == EXIT_FAILURE) {
+        fprintf(stderr, 
+                "[Error en initMB()]: No se ha podido escribir el buffer en el bloque %d", 
+                posBloque);
+        free(SB);
+        return EXIT_FAILURE;
+    }
 
     // Ya que hemos marcado en el mapa de bits los bloques
     // ya ocupados, tenemos que actualizar la cantidad 
     // de bloques libres en el superbloque
     SB->cantBloquesLibres = SB->cantBloquesLibres - bloquesMetadatos;
-    if(bwrite(posSB, SB) == EXIT_FAILURE) return EXIT_FAILURE;
+    if(bwrite(posSB, SB) == EXIT_FAILURE) {
+        fprintf(stderr, 
+                "[Error en initMB()]: No se ha podido escribir el superbloque");
+        free(SB);
+        return EXIT_FAILURE;
+    }
 
     free(SB);
 
@@ -168,6 +189,7 @@ int initAI() {
     SB = malloc(sizeof(struct superbloque));
     // Leemos el superbloque
     if(bread(posSB, SB) == EXIT_FAILURE) {
+        fprintf(stderr, "[Error en initAI()]: No se ha podido leer el superbloque");
         free(SB);
         return EXIT_FAILURE;
     }
@@ -188,11 +210,14 @@ int initAI() {
                 inodos[j].punterosDirectos[0] = UINT_MAX;
                 break;
             }
+
+            // fprintf(stderr, "Escribiendo nodo %d del bloque %d con punterosDirectos[0] = %d\n", j, i, inodos[j].punterosDirectos[0]);
         }
 
         // Escribimos las modificaciones en el
         // dispositivo virtual
         if(bwrite(i, inodos) == EXIT_FAILURE) {
+            fprintf(stderr, "[Error en initAI()]: No se ha podido escribir el bloque de inodos %d", i);
             free(SB);
             return EXIT_FAILURE;
         }
@@ -232,7 +257,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     unsigned char bufferMB[BLOCKSIZE];
     bread(nbloqueabs, bufferMB);
     //preparamos el byte a poner en uno
-    unsigned char mascara = 1000000;
+    unsigned char mascara = 128;
     mascara >>= posbit;
 
     //en funcion del caso marcamos como escrito
@@ -396,6 +421,11 @@ int escribir_inodo(unsigned int ninodo, struct inodo* inodo) {
     int bloqueRelativoInodo;
 
     SB = malloc(sizeof(struct superbloque));
+    if(bread(posSB, SB) == EXIT_FAILURE) {
+        fprintf(stderr, "[Error en escribir_inodo]: No se ha podido leer el superbloque");
+        free(SB);
+        return EXIT_FAILURE;
+    }
 
     // Calculamos el número relativo de bloque en
     // el que se encuentra el inodo solicitado
@@ -404,7 +434,7 @@ int escribir_inodo(unsigned int ninodo, struct inodo* inodo) {
 
     // Leemos el bloque solicitado
     if(bread(SB->posPrimerBloqueAI + bloqueRelativoInodo, inodos) == EXIT_FAILURE) {
-        fprintf(stderr, "Error leyendo bloque en escribir_inodo()");
+        fprintf(stderr, "[Error en escribir_inodo()]: No se ha podido leer el bloque de inodos");
         free(SB);
         return EXIT_FAILURE;
     }
@@ -413,7 +443,7 @@ int escribir_inodo(unsigned int ninodo, struct inodo* inodo) {
     inodos[ninodo%(BLOCKSIZE/INODOSIZE)] = *inodo;
 
     if(bwrite(SB->posPrimerBloqueAI + bloqueRelativoInodo, inodos) == EXIT_FAILURE) {
-        fprintf(stderr, "Error escribiendo el inodo %d", ninodo);
+        fprintf(stderr, "[Error en escribir_inodo()]: No se ha podido escribir el bloque del inodo %d", ninodo);
         free(SB);
         return EXIT_FAILURE;
     }
@@ -428,6 +458,11 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo) {
     int bloqueRelativoInodo;
 
     SB = malloc(sizeof(struct superbloque));
+    if(bread(posSB, SB) == EXIT_FAILURE) {
+        fprintf(stderr, "[Error en leer_inodo]: No se ha podido leer el superbloque");
+        free(SB);
+        return EXIT_FAILURE;
+    }
 
     // Calculamos el número relativo de bloque en
     // el que se encuentra el inodo solicitado
