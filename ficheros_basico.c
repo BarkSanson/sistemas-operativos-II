@@ -392,8 +392,7 @@ int liberar_bloque(unsigned int nbloque){
 
 int escribir_inodo(unsigned int ninodo, struct inodo* inodo) {
     struct superbloque* SB;
-    struct inodo* inodos;
-    unsigned char buf[BLOCKSIZE];
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
     int bloqueRelativoInodo;
 
     SB = malloc(sizeof(struct superbloque));
@@ -404,32 +403,95 @@ int escribir_inodo(unsigned int ninodo, struct inodo* inodo) {
     if(ninodo%(BLOCKSIZE/INODOSIZE) != 0) bloqueRelativoInodo++;
 
     // Leemos el bloque solicitado
-    if(bread(SB->posPrimerBloqueAI + bloqueRelativoInodo, buf) == EXIT_FAILURE) {
+    if(bread(SB->posPrimerBloqueAI + bloqueRelativoInodo, inodos) == EXIT_FAILURE) {
+        fprintf(stderr, "Error leyendo bloque en escribir_inodo()");
         free(SB);
         return EXIT_FAILURE;
     }
 
-    inodos = bloque_a_inodos(buf);
+    // Escribimos el inodo en el lugar correspondiente del array
+    inodos[ninodo%(BLOCKSIZE/INODOSIZE)] = *inodo;
 
-
-
-
-
-    free(SB);
-}
-
-/**
- * Pasa un bloque de inodos a un array de inodos
- * 
- * @param   buf     Buffer que contiene un bloque de inodos
- * @returns         Puntero al array de inodos
- * 
- */
-struct inodo* bloque_a_inodos(const unsigned char* buf) {
-    struct inodo inodos[BLOCKSIZE/INODOSIZE];
-    for(int i = 0, j = INODOSIZE; i < BLOCKSIZE/INODOSIZE; i = j + 1, j += INODOSIZE) {
-        memcpy(inodos + i, buf + i, INODOSIZE);
+    if(bwrite(SB->posPrimerBloqueAI + bloqueRelativoInodo, inodos) == EXIT_FAILURE) {
+        fprintf(stderr, "Error escribiendo el inodo %d", ninodo);
+        free(SB);
+        return EXIT_FAILURE;
     }
 
-    return inodos;
+    free(SB);
+    return EXIT_SUCCESS;
+}
+
+int leer_inodo(unsigned int ninodo, struct inodo *inodo) {
+    struct superbloque* SB;
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    int bloqueRelativoInodo;
+
+    SB = malloc(sizeof(struct superbloque));
+
+    // Calculamos el número relativo de bloque en
+    // el que se encuentra el inodo solicitado
+    bloqueRelativoInodo = ninodo/(BLOCKSIZE/INODOSIZE);
+    if(ninodo%(BLOCKSIZE/INODOSIZE) != 0) bloqueRelativoInodo++;
+
+    // Leemos el bloque solicitado
+    if(bread(SB->posPrimerBloqueAI + bloqueRelativoInodo, inodos) == EXIT_FAILURE) {
+        fprintf(stderr, "Error leyendo bloque en leer_inodo()");
+        free(SB);
+        return EXIT_FAILURE;
+    }
+
+    *inodo = inodos[ninodo%(BLOCKSIZE/INODOSIZE)];
+
+    free(SB);
+    return EXIT_SUCCESS;
+}
+
+int reservar_inodo(unsigned char tipo, unsigned char permisos) {
+    struct superbloque* SB;
+    struct inodo* nodo;
+    unsigned int posInodoReservado;
+
+    SB = malloc(sizeof(struct superbloque));
+    nodo = malloc(sizeof(struct inodo));
+
+    if(bread(posSB, SB) == EXIT_FAILURE) {
+        fprintf(stderr, "[Error en reservar_inodo]: No se ha podido leer el superbloque");
+        free(SB);
+        free(nodo);
+        return EXIT_FAILURE;
+    }
+
+    // Si no quedan inodos libres, no podemos reservar nada
+    if(SB->cantInodosLibres == 0) {
+        fprintf(stderr, "[Error en reservar_inodo()]: no quedan inodos libres");
+        free(SB);
+        free(nodo);
+        return EXIT_FAILURE;
+    }
+
+    // Actualizamos la lista enlazada de inodos libres 
+    posInodoReservado = SB->posPrimerInodoLibre;
+    leer_inodo(posInodoReservado, nodo);
+    SB->posPrimerInodoLibre = nodo->punterosDirectos[0];
+
+    // Inicializamos los campos del inodo
+    nodo->tipo = tipo;
+    nodo->permisos = permisos;
+    nodo->nlinks = 1;
+    nodo->tamEnBytesLog = 0;
+    nodo->atime = time(NULL);
+    nodo->mtime = time(NULL);
+    nodo->ctime = time(NULL);
+    for(int i = 0; i < 12; i++) nodo->punterosDirectos[i] = 0;
+    for(int i = 0; i < 3; i++) nodo->punterosIndirectos[i] = 0;
+
+    escribir_inodo(posInodoReservado, nodo);
+
+    SB->cantInodosLibres--;
+    bwrite(posSB, SB);
+
+    free(SB);
+    free(nodo);
+    return posInodoReservado;
 }
