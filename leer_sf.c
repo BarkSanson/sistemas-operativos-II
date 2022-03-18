@@ -2,7 +2,6 @@
 
 int main(int argc, char **argv) {
     struct superbloque* SB = malloc(sizeof(struct superbloque));
-    struct inodo inodos[BLOCKSIZE/INODOSIZE];
     int nbloques;
 
     bmount(argv[1]);
@@ -13,7 +12,7 @@ int main(int argc, char **argv) {
     initMB();
     initAI();
 
-    if(bread(posSB, SB) == EXIT_FAILURE) {
+    if(bread(posSB, SB) == ERROR_EXIT) {
         bumount();
         exit(1);
     }
@@ -36,15 +35,10 @@ int main(int argc, char **argv) {
     printf("sizeof struct superbloque %ld\n", sizeof(struct superbloque));
     printf("sizeof struct inodo %ld\n", sizeof(struct inodo));
 
-    printf("Lista enlazada de inodos libres:\n");
-
-    for(int i = SB->posPrimerBloqueAI; i <= SB->posUltimoBloqueAI; i++) {
-        bread(i, inodos);
-        for(int j = 0; j < BLOCKSIZE/INODOSIZE; j++) {
-            printf("%d, ", inodos[j].punterosDirectos[0]);
-        }
+    // Mostramos el MB
+    for(int i = 0; i <= SB->posUltimoBloqueDatos; i++) {
+        printf("leer_bit(%d) = %d\n", i, leer_bit(i));
     }
-
 
     free(SB);
     bumount();

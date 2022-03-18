@@ -65,3 +65,4 @@ int reservar_bloque();
 int liberar_bloque(unsigned int nbloque);
 int escribir_inodo(unsigned int ninodo, struct inodo* inodo);
 int leer_inodo(unsigned int ninodo, struct inodo* inodo);
+int reservar_inodo(unsigned char tipo, unsigned char permisos);
