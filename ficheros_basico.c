@@ -494,6 +494,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos) {
     nodo->permisos = permisos;
     nodo->nlinks = 1;
     nodo->tamEnBytesLog = 0;
+    nodo->numBloquesOcupados = 0;
     nodo->atime = time(NULL);
     nodo->mtime = time(NULL);
     nodo->ctime = time(NULL);
