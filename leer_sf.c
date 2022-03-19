@@ -44,10 +44,10 @@ int main(int argc, char **argv) {
     printf("leer_bit(%d) = %d\n", 0, leer_bit(0));
     printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueMB, leer_bit(SB->posPrimerBloqueMB));
     printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueMB, leer_bit(SB->posUltimoBloqueMB));
-    printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueAI, leer_bit(SB->posPrimerBloqueAI));
-    printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueAI, leer_bit(SB->posUltimoBloqueAI));
-    printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueDatos, leer_bit(SB->posPrimerBloqueDatos));
-    printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueDatos, leer_bit(SB->posUltimoBloqueDatos));
+    for(int i = 0; i < SB->posUltimoBloqueAI + 5; i++) {
+        if(leer_bit(i) == 0) 
+            printf("leer_bit(%d) = %d\n", i, leer_bit(i));
+    }
 
     free(SB);
     bumount();

@@ -90,7 +90,7 @@ int initMB() {
     int bloquesMetadatos;
     int bloquesNecesarios;
     int bytesNecesarios;
-    int posBloque = 1;
+    int posBloque = posSB + 1;
 
     if(bread(posSB, &SB) == ERROR_EXIT) {
         fprintf(stderr, 
@@ -134,16 +134,16 @@ int initMB() {
     // que escribirlos en el siguiente byte
     if(bloquesMetadatos % 8 != 0) {
         int bitsSueltos = bloquesMetadatos % 8;
-        char valorBitsSueltos = 0;
+        int valorBitsSueltos = 0;
         for(int i = 7; bitsSueltos > 0; i--) {
-            valorBitsSueltos += (int) pow(2/1.0, i/1.0);
+            valorBitsSueltos += (int) pow(2, i);
             bitsSueltos--;
         }
         buf[bytesNecesarios] = valorBitsSueltos;
     }
 
     // Rellenamos los bytes que sobren a 0
-    for(int i = bytesNecesarios; i < BLOCKSIZE; i++) {
+    for(int i = bytesNecesarios + 1; i < BLOCKSIZE; i++) {
         buf[i] = 0;
     }
 
