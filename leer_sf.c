@@ -4,6 +4,11 @@ int main(int argc, char **argv) {
     struct superbloque* SB = malloc(sizeof(struct superbloque));
     int nbloques;
 
+    if(argc < 3) {
+        fprintf(stderr, "Número de argumentos inválido: son necesarios 2 argumentos con la forma \n\tmi_mkfs {path} {número de bloques a escribir}");
+        return 1;
+    }
+
     bmount(argv[1]);
 
     nbloques = atoi(argv[2]);
@@ -14,7 +19,7 @@ int main(int argc, char **argv) {
 
     if(bread(posSB, SB) == ERROR_EXIT) {
         bumount();
-        exit(1);
+        return 1;
     }
 
     printf("Ejecutando test leer_sf.c\n");
@@ -36,9 +41,13 @@ int main(int argc, char **argv) {
     printf("sizeof struct inodo %ld\n", sizeof(struct inodo));
 
     // Mostramos el MB
-    for(int i = 0; i <= SB->posUltimoBloqueDatos; i++) {
-        printf("leer_bit(%d) = %d\n", i, leer_bit(i));
-    }
+    printf("leer_bit(%d) = %d\n", 0, leer_bit(0));
+    printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueMB, leer_bit(SB->posPrimerBloqueMB));
+    printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueMB, leer_bit(SB->posUltimoBloqueMB));
+    printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueAI, leer_bit(SB->posPrimerBloqueAI));
+    printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueAI, leer_bit(SB->posUltimoBloqueAI));
+    printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueDatos, leer_bit(SB->posPrimerBloqueDatos));
+    printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueDatos, leer_bit(SB->posUltimoBloqueDatos));
 
     free(SB);
     bumount();

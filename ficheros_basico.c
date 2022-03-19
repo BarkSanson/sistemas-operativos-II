@@ -228,23 +228,31 @@ int initAI() {
 int escribir_bit(unsigned int nbloque, unsigned int bit){
     //declaramos SB y leemos los valores del mismo
     struct superbloque SB;
+    unsigned char bufferMB[BLOCKSIZE];
+    unsigned char mascara;
 
     if(bread(posSB, &SB) == ERROR_EXIT){
+        fprintf(stderr, "[Error en escribir_bit()]: No se ha podido leer el superbloque");
         return ERROR_EXIT;
     }
-    //en que bloque del MB estamos (ABSOLUTO)
-    int nbloqueMB = nbloque/BLOCKSIZE;
-    int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB;
+
     //en que byte del bloque estamos y lo mismo con el bit
     int posByte = nbloque/8;
-    posByte = posByte % BLOCKSIZE;
-    int posbit = nbloque%8;
+    int posbit = nbloque % 8;
+    //en que bloque del MB estamos (ABSOLUTO)
+    int nbloqueMB = posByte/BLOCKSIZE;
+    int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB;
 
     //buffer donde leeremos el bloque del mapa de bits
-    unsigned char bufferMB[BLOCKSIZE];
-    bread(nbloqueabs, bufferMB);
+    if(bread(nbloqueabs, bufferMB) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en escribir_bit()]: No se ha podido leer el bloque");
+        return ERROR_EXIT;
+    };
+
+    posByte = posByte % BLOCKSIZE;
+
     //preparamos el byte a poner en uno
-    unsigned char mascara = 128;
+    mascara = 128;
     mascara >>= posbit;
 
     //en funcion del caso marcamos como escrito
@@ -256,10 +264,11 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     }
 
     if(bwrite(nbloqueabs,bufferMB) == ERROR_EXIT){
+        fprintf(stderr, "[Error en escribir_bit()]: No se ha podido escribir el bloque");
         return ERROR_EXIT;
-    } else {
-        return SUCCESS_EXIT;
     }
+
+    return SUCCESS_EXIT;
 }
 /**
  * Lee el valor que representa un bloque en nuestro MB
@@ -272,25 +281,30 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
 char leer_bit(unsigned int nbloque){
     //declaramos SB y leemos los valores del mismo
     struct superbloque SB;
+    unsigned char bufferMB[BLOCKSIZE];
+    unsigned char mascara;
 
     if(bread(posSB, &SB) == ERROR_EXIT){
+        fprintf(stderr, "[Error en leer_bit()]: No se ha podido leer el superbloque");
         return ERROR_EXIT;
     }
-    //en que bloque del MB estamos (ABSOLUTO)
-    int nbloqueMB = nbloque/BLOCKSIZE;
-    int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB;
+
     //en que byte del bloque estamos y lo mismo con el bit
     int posByte = nbloque/8;
-    posByte = posByte % BLOCKSIZE;
     int posbit = nbloque%8;
+    //en que bloque del MB estamos (ABSOLUTO)
+    int nbloqueMB = posByte/BLOCKSIZE;
+    int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB;
 
     //buffer donde leeremos el bloque del mapa de bits
-    unsigned char bufferMB[BLOCKSIZE];
     if(bread(nbloqueabs, bufferMB) == ERROR_EXIT){
+        fprintf(stderr, "[Error en leer_bit()]: No se ha podido leer el bloque");
         return ERROR_EXIT;
     }
 
-    unsigned char mascara = 128; 
+    posByte = posByte % BLOCKSIZE;
+
+    mascara = 128; 
     mascara >>= posbit;          
     mascara &= bufferMB[posByte];
     mascara >>= (7 - posbit);
