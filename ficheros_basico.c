@@ -509,3 +509,128 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos) {
     free(nodo);
     return posInodoReservado;
 }
+/**
+ * @brief funcion que nos dice a que rango de punteros se sitúa el
+ * bloque lógico que buscamos
+ * 
+ * @param inodo
+ * @param nblogico 
+ * @param ptr 
+ * @return bloque lógico en el que se encuentra 
+ */
+int obtener_nRangoBL(struct inodo* inodo, unsigned int nblogico, unsigned int* ptr){
+
+    if(nblogico<DIRECTOS){
+        *ptr = inodo->punterosDirectos[nblogico];
+        return 0;
+    }
+
+    if(nblogico<INDIRECTOS0){
+        *ptr = inodo->punterosIndirectos[0];
+        return 1;
+    }
+
+    if(nblogico<INDIRECTOS1){
+        *ptr = inodo->punterosIndirectos[1];
+        return 2;
+    }
+
+    if(nblogico<INDIRECTOS2){
+        *ptr = inodo->punterosIndirectos[2];
+        return 3;
+    }
+    //Si llega hasta aquí es porque no habrá entrado en ningun
+    //rango de inodos
+    *ptr = 0;
+    perror("Bloque lógico fuera de rango");
+    return -1;
+}
+
+int obtener_indice(unsigned int nblogico, int nivel_punteros){
+    //Cuando el inodo apunta a uno de los 12 primeros bloques
+    if(nblogico<DIRECTOS){
+        return nblogico;
+    }
+    else if(nblogico<INDIRECTOS0){
+        return nblogico-DIRECTOS;
+    }
+    else if(nblogico<INDIRECTOS1){
+        if(nivel_punteros == 2){
+            return (nblogico - INDIRECTOS0) / NPUNTEROS;
+        }
+        if(nivel_punteros == 1){
+            return (nblogico - INDIRECTOS0) % NPUNTEROS;
+        }
+    }
+    else if(nblogico<INDIRECTOS2){
+        if(nivel_punteros == 3){
+            return (nblogico - INDIRECTOS1) / (NPUNTEROS * NPUNTEROS);
+        }
+        else if(nivel_punteros == 2){
+            return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) / NPUNTEROS;
+        }
+        else if(nivel_punteros == 1){
+            return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) % NPUNTEROS;
+        }
+    }
+}
+
+int traducir_bloque_logico(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
+    struct inodo inodo;
+    unsigned int ptr,ptr_ant;
+    int salvar_inodo,nRangoBL,nivel_punteros,indice = 0;
+    int buffer[NPUNTEROS];
+
+    leer_inodo(ninodo,&inodo);
+    nRangoBL = obtener_nRangoBL(&inodo,nblogico,&ptr);
+    nivel_punteros = nRangoBL;
+    while(nivel_punteros>0){
+        if(ptr = 0){
+            if(reservar == 0) {
+                return -1;
+            }
+            else {
+                salvar_inodo == 1;
+                ptr = reservar_bloque();
+                inodo.numBloquesOcupados++;
+                inodo.ctime = time(NULL);
+                if(nivel_punteros == nRangoBL){
+                    inodo.punterosIndirectos[nRangoBL - 1] = ptr;
+                }
+                else {
+                    buffer[indice] = ptr;
+                    bwrite(ptr_ant,buffer);
+                }
+                memset(buffer,0,BLOCKSIZE);
+            }
+        } else {
+            bread(ptr,buffer);
+        }
+        indice = obtener_indice(nblogico,nivel_punteros);
+        ptr_ant = ptr;
+        ptr = buffer[indice];
+        nivel_punteros--;
+    }
+
+    if(ptr == 0){
+        if(reservar == 0){
+            return -1;
+        } else {
+            salvar_inodo = 1;
+            ptr = reservar_bloque();
+            inodo.numBloquesOcupados++;
+            inodo.ctime = time(NULL);
+            if (nRangoBL == 0){
+                inodo.punterosDirectos[nblogico] = ptr;
+            } else {
+                buffer[indice] = ptr;
+                bwrite(ptr_ant,buffer);
+            }
+        }
+    }
+
+    if(salvar_inodo == 1){
+        escribir_inodo(ninodo,inodo); //la funcion es por referencia y aqui le damos el objeto en sí
+    }
+    return ptr;
+}
