@@ -572,7 +572,11 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
         else if(nivel_punteros == 1){
             return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) % NPUNTEROS;
         }
-    }
+    } 
+    
+    // Si hemos llegado aquí es porque ha habido error
+    fprintf(stderr, "[Error en obtener_indice()]: no se cumple ninguna condición, se devuelve -1");
+    return -1;
 }
 
 int traducir_bloque_logico(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
@@ -585,12 +589,12 @@ int traducir_bloque_logico(unsigned int ninodo, unsigned int nblogico, unsigned 
     nRangoBL = obtener_nRangoBL(&inodo,nblogico,&ptr);
     nivel_punteros = nRangoBL;
     while(nivel_punteros>0){
-        if(ptr = 0){
+        if(ptr == 0){
             if(reservar == 0) {
                 return -1;
             }
             else {
-                salvar_inodo == 1;
+                salvar_inodo = 1;
                 ptr = reservar_bloque();
                 inodo.numBloquesOcupados++;
                 inodo.ctime = time(NULL);
@@ -630,7 +634,7 @@ int traducir_bloque_logico(unsigned int ninodo, unsigned int nblogico, unsigned 
     }
 
     if(salvar_inodo == 1){
-        escribir_inodo(ninodo,inodo); //la funcion es por referencia y aqui le damos el objeto en sí
+        escribir_inodo(ninodo, &inodo); //la funcion es por referencia y aqui le damos el objeto en sí
     }
     return ptr;
 }
