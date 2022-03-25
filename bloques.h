@@ -9,6 +9,13 @@
 #define BLOCKSIZE 1024 // bytes
 #define SUCCESS_EXIT 0
 #define ERROR_EXIT -1 
+#define DEBUG 1
+#if DEBUG
+    #define RED "\033[0;31m"
+    #define YELLOW  "\033[0;33m" 
+    #define BOLD_GREEN "\033[1;32m"
+    #define RESET_COLOR "\033[0m"
+#endif
  
 int bmount(const char *camino);
 int bumount();
