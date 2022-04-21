@@ -23,12 +23,18 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
 
     if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
         fprintf(stderr, "[Error en mi_write_f()]: error leyendo el inodo");
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
         return ERROR_EXIT;
     }
 
     // Comprobamos que hay permisos de escritura
     if((inodo.permisos & 2) != 2) {
         fprintf(stderr, "[ERROR]: no hay permisos de escritura del fichero");
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
         return ERROR_EXIT;
     }
 
@@ -47,7 +53,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
         if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
             #if DEBUG
-                fprintf(stderr, "%s<ERROR EN LA LÍNEA 47 DE FICHEROS.C>%s", RED, RESET_COLOR);
+                fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
             #endif
             return ERROR_EXIT;
         }
@@ -56,7 +62,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
         if(bwrite(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el bloque físico del inodo\n");
             #if DEBUG
-                fprintf(stderr, "%s<ERROR EN LA LÍNEA 56 DE FICHEROS.C>%s", RED, RESET_COLOR);
+                fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
             #endif
             return ERROR_EXIT;
         }
@@ -65,7 +71,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
         if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
             #if DEBUG
-                fprintf(stderr, "%s<ERROR EN LA LÍNEA 64 DE FICHEROS.C>%s", RED, RESET_COLOR);
+                fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
             #endif
             return ERROR_EXIT;
         }
@@ -75,27 +81,32 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
         if(bwrite(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el bloque físico del inodo\n");
             #if DEBUG
-                fprintf(stderr, "%s<ERROR EN LA LÍNEA 74 DE FICHEROS.C>%s", RED, RESET_COLOR);
+                fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
             #endif
             return ERROR_EXIT;
         }
 
         // Escritura de los bloques intermedios
         for(int i = primerBL + 1; i < ultimoBL; i++) {
+            #if DEBUG
+                fprintf(stderr, "%s<ESCRIBIENDO BLOQUE %d%s", YELLOW, i, RESET_COLOR);
+            #endif
             if(bwrite(nbfisico, buf_original + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE) == ERROR_EXIT) {
                 fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el bloque físico %d del inodo\n", i);
                 #if DEBUG
-                    fprintf(stderr, "%s<ERROR EN LA LÍNEA 85 DE FICHEROS.C>%s", RED, RESET_COLOR);
+                    fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
                 #endif
                 return ERROR_EXIT;
             }
         }
 
         // Ultimo bloque lógico
+        nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
+
         if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico %d del inodo\n", nbfisico);
             #if DEBUG
-                fprintf(stderr, "%s<ERROR EN LA LÍNEA 95 DE FICHEROS.C>%s", RED, RESET_COLOR);
+                fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
             #endif
             return ERROR_EXIT;
         }
@@ -105,7 +116,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
         if(bwrite(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el bloque físico %d del inodo\n", nbfisico);
             #if DEBUG
-                fprintf(stderr, "%s<ERROR EN LA LÍNEA 105 DE FICHEROS.C>%s", RED, RESET_COLOR);
+                fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
             #endif
             return ERROR_EXIT;
         }
@@ -115,7 +126,11 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     leer_inodo(ninodo, &inodo);
 
     // TODO: HACER LO DE ACTUALIZAR tamEnBytesLog
-    inodo.mtime = time(NULL);
+    if(offset >= inodo.tamEnBytesLog) {
+        inodo.tamEnBytesLog += offset;
+        inodo.mtime = time(NULL);
+    }
+
     escribir_inodo(ninodo, &inodo);
 
     return nbytes; // TODO: no se si esto es asi, hay que revisarlo
