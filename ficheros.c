@@ -251,7 +251,7 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
 
         if(nbfisico != ERROR_EXIT) {
             if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
-                fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico %d del inodo\n", nbfisico);
+                fprintf(stderr, "[Error en mi_read_f()]: no se ha podido leer el bloque físico %d del inodo\n", nbfisico);
                 #if DEBUG
                     fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
                 #endif
@@ -264,11 +264,50 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
         bytesLeidos += desp2 + 1;
     }
 
-    leer_inodo(ninodo, &inodo);
+    if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_read_f()]: no se ha podido leer el inodo %d\n", ninodo);
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
+        return ERROR_EXIT;
+    }
 
     inodo.atime = time(NULL);
 
-    escribir_inodo(ninodo, &inodo);
+    if(escribir_inodo(ninodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_read_f()]: no se ha podido escribir el inodo %d\n", ninodo);
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
+        return ERROR_EXIT;
+    }
 
     return bytesLeidos;
+}
+
+int mi_stat_f(unsigned int ninodo, struct STAT* p_stat) {
+    struct inodo inodo;    
+
+    if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_stat_f()]: no se ha podido leer el inodo %d\n", ninodo);
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
+        return ERROR_EXIT;
+    }
+
+    p_stat->tipo = inodo.tipo;
+    p_stat->permisos = inodo.permisos;
+    p_stat->atime = inodo.atime;
+    p_stat->ctime = inodo.ctime;
+    p_stat->mtime = inodo.mtime;
+    p_stat->nlinks = inodo.nlinks;
+    p_stat->numBloquesOcupados = inodo.numBloquesOcupados;
+    p_stat->tamEnBytesLog = inodo.tamEnBytesLog;
+
+    return SUCCESS_EXIT;
+}
+
+int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
+
 }
