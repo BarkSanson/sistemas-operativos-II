@@ -20,6 +20,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     int desp1;
     int desp2;
     int nbfisico;
+    int bytesEscritos;
 
     if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
         fprintf(stderr, "[Error en mi_write_f()]: error leyendo el inodo");
@@ -66,7 +67,14 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
             #endif
             return ERROR_EXIT;
         }
+
+        // Solo escribimos un bloque, lo cual equivale 
+        // a BLOCKSIZE bytes
+        bytesEscritos = BLOCKSIZE;
     } else {    // La operación afecta a más de un bloque
+
+        bytesEscritos = 0;
+
         // Escritura del primer bloque
         if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
@@ -77,6 +85,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
         }
 
         memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
+        bytesEscritos += BLOCKSIZE - desp1;
 
         if(bwrite(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el bloque físico del inodo\n");
@@ -91,6 +100,9 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
             #if DEBUG
                 fprintf(stderr, "%s<ESCRIBIENDO BLOQUE %d%s", YELLOW, i, RESET_COLOR);
             #endif
+
+            nbfisico = traducir_bloque_inodo(ninodo, i, 1);
+
             if(bwrite(nbfisico, buf_original + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE) == ERROR_EXIT) {
                 fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el bloque físico %d del inodo\n", i);
                 #if DEBUG
@@ -98,6 +110,11 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
                 #endif
                 return ERROR_EXIT;
             }
+
+            // Estamos escribiendo bloques enteros,
+            // por tanto, por cada iteración sumamos
+            // el tamanyo de un bloque completo
+            bytesEscritos += BLOCKSIZE;
         }
 
         // Ultimo bloque lógico
@@ -113,6 +130,8 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
 
         memcpy(buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
 
+        bytesEscritos += desp2 + 1;
+
         if(bwrite(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el bloque físico %d del inodo\n", nbfisico);
             #if DEBUG
@@ -125,7 +144,6 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     // Actualizamos la metainformación del inodo
     leer_inodo(ninodo, &inodo);
 
-    // TODO: HACER LO DE ACTUALIZAR tamEnBytesLog
     if(offset >= inodo.tamEnBytesLog) {
         inodo.tamEnBytesLog += offset;
         inodo.mtime = time(NULL);
@@ -133,9 +151,124 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
 
     escribir_inodo(ninodo, &inodo);
 
-    return nbytes; // TODO: no se si esto es asi, hay que revisarlo
+    return bytesEscritos; 
 }
 
 int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsigned int nbytes) {
+    struct inodo inodo;
+    unsigned char buf_bloque[BLOCKSIZE];
+    int primerBL;
+    int ultimoBL;
+    int desp1;
+    int desp2;
+    int nbfisico;
+    int bytesLeidos;
 
+    leer_inodo(ninodo, &inodo);
+    
+    if((inodo.permisos & 4) != 4) {
+        fprintf(stderr, "[ERROR]: no hay permisos de escritura del fichero");
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
+        return ERROR_EXIT;
+    }
+
+    // No se puede leer más alla del tamanyo
+    // lógico del fichero. Por tanto, no leemos
+    // nada y devolvemos 0
+    if(offset >= inodo.tamEnBytesLog) return 0;
+
+    if((offset + nbytes) >= inodo.tamEnBytesLog) {
+        nbytes = inodo.tamEnBytesLog - offset;
+    }
+
+    primerBL = offset / BLOCKSIZE;
+    ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
+
+    desp1 = offset % BLOCKSIZE;
+    desp2 = (offset + nbytes - 1) % BLOCKSIZE;
+
+    nbfisico = traducir_bloque_inodo(ninodo, primerBL, 0);
+
+    if(primerBL == ultimoBL) {  // Leemos solo un bloque
+        if(nbfisico != ERROR_EXIT) {
+            if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
+                fprintf(stderr, "[Error en mi_read_f()]: no se ha podido leer el bloque físico del inodo\n");
+                #if DEBUG
+                    fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+                #endif
+                return ERROR_EXIT;
+            }
+
+            memcpy(buf_bloque + desp1, buf_original, nbytes);
+        }
+
+        bytesLeidos = nbytes;
+    } else { // Leemos más de un bloque
+        bytesLeidos = 0;
+
+        // Lectura del primer bloque
+        if(nbfisico != ERROR_EXIT) {
+            if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
+                fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
+                #if DEBUG
+                    fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+                #endif
+                return ERROR_EXIT;
+            }
+
+            memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
+        }
+
+        bytesLeidos += BLOCKSIZE - desp1;
+
+        // Lectura de los bloques intermedios
+        for(int i = primerBL + 1; i < ultimoBL; i++) {
+            #if DEBUG
+                fprintf(stderr, "%s<LEYENDO BLOQUE %d%s", YELLOW, i, RESET_COLOR);
+            #endif
+
+            nbfisico = traducir_bloque_inodo(ninodo, i, 0);
+
+            if(nbfisico != ERROR_EXIT) {
+                if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
+                    fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
+                    #if DEBUG
+                        fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+                    #endif
+                    return ERROR_EXIT;
+                }
+
+                memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
+            }
+
+            bytesLeidos += BLOCKSIZE;
+        }
+        
+        // Ultimo bloque lógico
+        nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
+
+        if(nbfisico != ERROR_EXIT) {
+            if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
+                fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico %d del inodo\n", nbfisico);
+                #if DEBUG
+                    fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+                #endif
+                return ERROR_EXIT;
+            }
+            memcpy(buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
+        }
+
+
+        bytesLeidos += desp2 + 1;
+    }
+
+    leer_inodo(ninodo, &inodo);
+
+    inodo.atime = time(NULL);
+
+    escribir_inodo(ninodo, &inodo);
+
+    return bytesLeidos;
 }

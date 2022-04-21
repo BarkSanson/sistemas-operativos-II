@@ -591,7 +591,7 @@ int traducir_bloque_logico(unsigned int ninodo, unsigned int nblogico, unsigned 
     while(nivel_punteros>0){
         if(ptr == 0){
             if(reservar == 0) {
-                return -1;
+                return ERROR_EXIT;
             }
             else {
                 salvar_inodo = 1;
@@ -618,7 +618,7 @@ int traducir_bloque_logico(unsigned int ninodo, unsigned int nblogico, unsigned 
 
     if(ptr == 0){
         if(reservar == 0){
-            return -1;
+            return ERROR_EXIT;
         } else {
             salvar_inodo = 1;
             ptr = reservar_bloque();
