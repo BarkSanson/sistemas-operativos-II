@@ -154,6 +154,18 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     return bytesEscritos; 
 }
 
+/**
+ * Lee la información de un fichero/directorio y la almacena
+ * en un buffer de memoria 
+ * 
+ * @param   ninodo          Posición del inodo a consultar
+ * @param   buf_original    Buffer donde volcar la información
+ * @param   offset          Posición de lectura inicial con respecto al inodo
+ * @param   nbytes          Número de bytes a leer
+ * 
+ * @returns ERROR_EXIT si ha salido algo mal, el número de bytes
+ *          leidos de lo contrario
+ */
 int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsigned int nbytes) {
     struct inodo inodo;
     unsigned char buf_bloque[BLOCKSIZE];
@@ -285,6 +297,15 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
     return bytesLeidos;
 }
 
+/**
+ * Vuelca en un struct STAT la metainformación de un fichero/directorio
+ * correspondiente a un ninodo
+ * 
+ * @param   ninodo  Posición del inodo a consultar
+ * @param   p_stat  Puntero al struct STAT donde volcar los metadatos  
+ * 
+ * @returns ERROR_EXIT si ha salido algo mal, SUCCESS_EXIT de lo contrario
+ */
 int mi_stat_f(unsigned int ninodo, struct STAT* p_stat) {
     struct inodo inodo;    
 
@@ -308,6 +329,14 @@ int mi_stat_f(unsigned int ninodo, struct STAT* p_stat) {
     return SUCCESS_EXIT;
 }
 
+/**
+ * Cambia los permisos de un inodo determinado
+ * 
+ * @param   ninodo      Posición del inodo a modificar
+ * @param   permisos    Nuevos permisos que queremos que tenga el inodo
+ * 
+ * @returns ERROR_EXIT si ha salido algo mal, SUCCESS_EXIT de lo contrario
+ */
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
     struct inodo inodo;
 

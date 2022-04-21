@@ -579,7 +579,7 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
     return -1;
 }
 
-int traducir_bloque_logico(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
+int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
     struct inodo inodo;
     unsigned int ptr,ptr_ant;
     int salvar_inodo,nRangoBL,nivel_punteros,indice = 0;
