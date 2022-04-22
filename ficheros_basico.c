@@ -650,3 +650,85 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
     }
     return ptr;
 }
+    //TODO
+    int liberar_inodo(unsigned int ninodo){
+        struct inodo inodo;
+        leer_inodo(ninodo,&inodo);
+    }
+
+    int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
+        unsigned int nivel_punteros,indice,ptr,nBL,ultimoBL = 0;
+        int nRangoBL = 0;
+        unsigned int bloques_punteros[3][NPUNTEROS];
+        unsigned char bufAux_punteros[BLOCKSIZE];
+        int ptr_nivel[3];
+        int indices[3];
+        int liberados = 0;
+
+        //Si no hay nada en ese inodo no hay bloques a liberar
+        if(inodo->tamEnBytesLog == 0){
+            return EXIT_SUCCESS;
+        }
+        //Determinamos cuantos bloques tiene el inodo
+        if(inodo->tamEnBytesLog % BLOCKSIZE == 0){
+            ultimoBL = inodo->tamEnBytesLog / BLOCKSIZE - 1;
+        } else {
+            ultimoBL = inodo->tamEnBytesLog / BLOCKSIZE;
+        }
+
+        //Preparamos el buffer para liberar los bloques
+        memset(bufAux_punteros,0,BLOCKSIZE);
+
+        for(nBL = primerBL; nBL < ultimoBL; nBL++){
+            nRangoBL = obtener_nRangoBL(inodo,nBL,&ptr);
+            if(nRangoBL < 0){
+                printf("Error al obtener el rango de bloque lógico");
+            }
+            nivel_punteros = nRangoBL;
+
+            //aun hay bloques de punteros por leer
+            while(ptr>0 && nivel_punteros>0){
+                indice = obtener_indice(nBL, nivel_punteros);
+                if(indice == 0 || nBL == primerBL){
+                    bread(ptr,bloques_punteros[nivel_punteros-1]);
+                }
+                ptr_nivel[nivel_punteros - 1] = ptr;
+                indices[nivel_punteros - 1] = indice;
+                ptr = bloques_punteros[nivel_punteros-1][indice];
+                nivel_punteros--;
+            }
+
+            //Si existe bloque de datos
+            if(ptr>0){
+                liberar_bloque(ptr);
+                liberados++;
+            }
+            //Puntero directo?
+            if(nRangoBL == 0) {
+                inodo->punterosDirectos[nBL] = 0;
+            } else {
+                nivel_punteros = 1;
+                while (nivel_punteros <= nRangoBL)
+                {
+                    indice = indices[nivel_punteros - 1];
+                    bloques_punteros[nivel_punteros - 1][indice] = 0;
+                    ptr = ptr_nivel[nivel_punteros - 1];
+                    if(memcmp(bloques_punteros[nivel_punteros - 1],bufAux_punteros, BLOCKSIZE) == 0){
+                        //No quedan más bloques ocupados, liberar bloque punteros
+                        liberar_bloque(ptr);
+                        liberados++;
+                        if(nivel_punteros == nRangoBL){
+                            inodo->punterosIndirectos[nRangoBL - 1] = 0;
+                        }
+                        nivel_punteros++;
+                    } else {
+                        bwrite(ptr,bloques_punteros[nivel_punteros - 1]);
+                        nivel_punteros = nRangoBL + 1;
+                    }
+                }
+                
+            }
+
+        }
+        return liberados;
+    }
