@@ -1,6 +1,6 @@
 echo "################################################################################"
-echo "$ rm disco"
-rm disco
+echo "$ rm ../build/disco"
+rm ../build/disco
 echo "$ ../build/mi_mkfs disco 100000"
 echo "#inicializamos el sistema de ficheros con 100.000 bloques"
 ../build/mi_mkfs disco 100000
@@ -25,7 +25,7 @@ echo "##########################################################################
 echo "$ ls -l ext1.txt"
 echo "#comprobamos cuánto ocupa el fichero externo"
 echo "#(ha de coincidir con el tamaño en bytes lógico del inodo y con los bytes leídos)"
-ls -l ext1.txt
+ls -l ../build/ext1.txt
 echo "################################################################################"
 echo "$ ../build/escribir disco "123456789" 1"
 echo "#escribimos el texto “123456789” en los offsets 9000, 209000, 30725000, "
@@ -40,11 +40,11 @@ echo "##########################################################################
 echo "$ ls -l ext2.txt"
 echo "#comprobamos cuánto ocupa el fichero externo ext2.txt"
 echo "#(ha de coincidir con el tamaño en bytes lógico del inodo 2 y con total_leidos)"
-ls -l ext2.txt
+ls -l ../build/ext2.txt
 echo "################################################################################"
-echo "$ cat ext2.txt"
+echo "$ cat ../build/ext2.txt"
 echo "#usamos el comando cat del sistema para leer el contenido del fichero externo"
-cat ext2.txt
+cat ../build/ext2.txt
 echo
 echo "################################################################################"
 echo "$ ../build/leer disco 2"
@@ -60,11 +60,11 @@ echo "##########################################################################
 echo "$ ls -l ext3.txt"
 echo "#comprobamos cuánto ocupa el fichero externo ext3.txt"
 echo "#(ha de coincidir con el tamaño en bytes lógico del inodo 5 y con total_leidos)"
-ls -l ext3.txt
+ls -l ../build/ext3.txt
 echo "################################################################################"
 echo "$ cat ext3.txt"
 echo "#usamos el comando cat del sistema para leer el contenido del fichero externo"
-cat ext3.txt
+cat ../build/ext3.txt
 echo
 echo "################################################################################"
 echo "$ ../build/leer disco 5"
