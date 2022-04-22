@@ -24,7 +24,5 @@ int main(int argc, char **argv) {
     // Desmontamos el dispositivo virtual
     bumount();
 
-    printf("TamMB: %d", tamMB(nbloques));
-
     return 0;
 }

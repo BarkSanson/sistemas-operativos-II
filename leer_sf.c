@@ -4,6 +4,12 @@
 #define BOLD_GREEN "\033[1;32m"
 #define RESET_COLOR "\033[0m"
 
+#define BLOQUE1 8
+#define BLOQUE2 204
+#define BLOQUE3 30004
+#define BLOQUE4 400004
+#define BLOQUE5 468750
+
 void mostrar_inodo(struct inodo* inodo) {
     struct tm* ts;
     char atime[80];
@@ -30,11 +36,11 @@ void mostrar_inodo(struct inodo* inodo) {
 
 int main(int argc, char **argv) {
     struct superbloque* SB = malloc(sizeof(struct superbloque));
-    struct inodo nodo;
-    int nbloques;
+    // struct inodo nodo;
+    int posInodoReservado;
 
-    if(argc < 3) {
-        fprintf(stderr, "Número de argumentos inválido: son necesarios 2 argumentos con la forma \n\tmi_mkfs {path} {número de bloques a escribir}");
+    if(argc != 2) {
+        fprintf(stderr, "Número de argumentos inválido: son necesarios 1 argumento con la forma \n\tleer_sf <fichero>");
         return 1;
     }
 
@@ -42,14 +48,7 @@ int main(int argc, char **argv) {
 
     bmount(argv[1]);
 
-    nbloques = atoi(argv[2]);
-
-    initSB(nbloques, nbloques/4);
-    initMB();
-    initAI();
-
     if(bread(posSB, SB) == ERROR_EXIT) {
-        bumount();
         return 1;
     }
 
@@ -67,56 +66,64 @@ int main(int argc, char **argv) {
     printf("totBloques = %d\n", SB->totBloques); 
     printf("totInodos = %d\n", SB->totInodos);
 
+    // === PRUEBAS DEL MB, DIRECTORIO RAÍZ Y RESERVA/LIBERACIÓN DE BLOQUE ===
 
-    printf("%sRESERVANDO INODO RAÍZ\n%s", YELLOW, RESET_COLOR);
-    reservar_inodo('d', 7);
+    // (comentadas ya que a partir del nivel 4 ya no son necesarias)
 
-    if(bread(posSB, SB) == ERROR_EXIT) {
-        bumount();
-        return 1;
-    }
+    // printf("%sRESERVANDO INODO RAÍZ\n%s", YELLOW, RESET_COLOR);
+    // reservar_inodo('d', 7);
 
-    printf("cantInodosLibres después de reservar inodo raíz = %d\n", SB->cantInodosLibres);
+    // if(bread(posSB, SB) == ERROR_EXIT) {
+    //     bumount();
+    //     return 1;
+    // }
 
-    printf("%sTAMANYOS DE CADA STRUCT:%s\n", YELLOW, RESET_COLOR);
-    printf("sizeof struct superbloque %ld\n", sizeof(struct superbloque));
-    printf("sizeof struct inodo %ld\n", sizeof(struct inodo));
+    // printf("cantInodosLibres después de reservar inodo raíz = %d\n", SB->cantInodosLibres);
 
-    // Mostramos el MB
-    printf("%sFRONTERAS DEL MB:%s\n", YELLOW, RESET_COLOR);
-    printf("leer_bit(%d) = %d\n", 0, leer_bit(0));
-    printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueMB, leer_bit(SB->posPrimerBloqueMB));
-    printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueMB, leer_bit(SB->posUltimoBloqueMB));
-    printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueAI, leer_bit(SB->posPrimerBloqueAI));
-    printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueAI, leer_bit(SB->posUltimoBloqueAI));
-    printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueDatos, leer_bit(SB->posPrimerBloqueDatos));
-    printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueDatos, leer_bit(SB->posUltimoBloqueDatos));
+    // printf("%sTAMANYOS DE CADA STRUCT:%s\n", YELLOW, RESET_COLOR);
+    // printf("sizeof struct superbloque %ld\n", sizeof(struct superbloque));
+    // printf("sizeof struct inodo %ld\n", sizeof(struct inodo));
 
-    printf("%sLEYENDO INODO RAÍZ:%s\n", YELLOW, RESET_COLOR);
-    leer_inodo(0, &nodo);
-    mostrar_inodo(&nodo);
+    // // Mostramos el MB
+    // printf("%sFRONTERAS DEL MB:%s\n", YELLOW, RESET_COLOR);
+    // printf("leer_bit(%d) = %d\n", 0, leer_bit(0));
+    // printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueMB, leer_bit(SB->posPrimerBloqueMB));
+    // printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueMB, leer_bit(SB->posUltimoBloqueMB));
+    // printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueAI, leer_bit(SB->posPrimerBloqueAI));
+    // printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueAI, leer_bit(SB->posUltimoBloqueAI));
+    // printf("leer_bit(%d) = %d\n", SB->posPrimerBloqueDatos, leer_bit(SB->posPrimerBloqueDatos));
+    // printf("leer_bit(%d) = %d\n", SB->posUltimoBloqueDatos, leer_bit(SB->posUltimoBloqueDatos));
 
-    printf("%sRESERVAMOS Y LIBERAMOS UN BLOQUE:%s\n", YELLOW, RESET_COLOR);
-    if(bread(posSB, SB) == ERROR_EXIT) {
-        bumount();
-        return 1;
-    }
-    printf("cantBloquesLibres antes de reservar = %d\n", SB->cantBloquesLibres);
-    reservar_bloque();
-    if(bread(posSB, SB) == ERROR_EXIT) {
-        bumount();
-        return 1;
-    }
-    printf("cantBloquesLibres despues de reservar= %d\n", SB->cantBloquesLibres);
+    // printf("%sLEYENDO INODO RAÍZ:%s\n", YELLOW, RESET_COLOR);
+    // leer_inodo(0, &nodo);
+    // mostrar_inodo(&nodo);
 
-    liberar_bloque(7);
+    // printf("%sRESERVAMOS Y LIBERAMOS UN BLOQUE:%s\n", YELLOW, RESET_COLOR);
+    // if(bread(posSB, SB) == ERROR_EXIT) {
+    //     bumount();
+    //     return 1;
+    // }
+    // printf("cantBloquesLibres antes de reservar = %d\n", SB->cantBloquesLibres);
+    // reservar_bloque();
+    // if(bread(posSB, SB) == ERROR_EXIT) {
+    //     bumount();
+    //     return 1;
+    // }
+    // printf("cantBloquesLibres despues de reservar= %d\n", SB->cantBloquesLibres);
 
-    if(bread(posSB, SB) == ERROR_EXIT) {
-        bumount();
-        return 1;
-    }
-    printf("cantBloquesLibres despues de liberar = %d\n", SB->cantBloquesLibres);
+    // liberar_bloque(7);
 
+    // if(bread(posSB, SB) == ERROR_EXIT) {
+    //     bumount();
+    //     return 1;
+    // }
+    // printf("cantBloquesLibres despues de liberar = %d\n", SB->cantBloquesLibres);
+
+    // === PRUEBAS TRADUCIR_BLOQUE_INODO === 
+    posInodoReservado = reservar_inodo('f', 6);
+    traducir_bloque_inodo(posInodoReservado, BLOQUE1, 1);
+
+    
     free(SB);
     bumount();
 
