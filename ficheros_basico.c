@@ -321,6 +321,9 @@ char leer_bit(unsigned int nbloque){
 int reservar_bloque(){
     //reservamos memoria para el superbloque y lo leemos
     struct superbloque SB;
+    unsigned char buffer[BLOCKSIZE];
+    unsigned char aux[BLOCKSIZE];
+    unsigned char mascara = 128;
 
     if(bread(posSB, &SB) == ERROR_EXIT){
         return ERROR_EXIT;
@@ -331,9 +334,6 @@ int reservar_bloque(){
         return ERROR_EXIT;
     }
 
-    unsigned char buffer[BLOCKSIZE];
-    unsigned char aux[BLOCKSIZE];
-    unsigned char mascara = 128;
     memset(aux,255,BLOCKSIZE);
     //conseguimos el primer bloque de MB
     int nbloqueabs = SB.posPrimerBloqueMB;
@@ -341,7 +341,7 @@ int reservar_bloque(){
     //uso de la cpu invocando a tamMB()
     int tamMB = SB.posPrimerBloqueAI - SB.posPrimerBloqueMB;
 
-    //vamos comparando todos los blqoues a ver si hay algoç
+    //vamos comparando todos los blqoues a ver si hay algo
     //en alguno de ellos
     int posbit = 0;
     int nbloque = 0;
@@ -581,7 +581,7 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
 
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
     struct inodo inodo;
-    unsigned int ptr,ptr_ant;
+    unsigned int ptr,ptr_ant = 0;
     int salvar_inodo,nRangoBL,nivel_punteros,indice = 0;
     int buffer[NPUNTEROS];
 
@@ -600,9 +600,15 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
                 inodo.ctime = time(NULL);
                 if(nivel_punteros == nRangoBL){
                     inodo.punterosIndirectos[nRangoBL - 1] = ptr;
+                    #if DEBUG
+                        fprintf(stderr, "[traducir_bloque_inodo() -> inodo.punterosIndirectos[%d - 1] = %d\n", nRangoBL, ptr);
+                    #endif
                 }
                 else {
                     buffer[indice] = ptr;
+                    #if DEBUG
+                        fprintf(stderr, "[traducir_bloque_inodo() -> buffer[%d] = %d\n", indice , ptr);
+                    #endif
                     bwrite(ptr_ant,buffer);
                 }
                 memset(buffer,0,BLOCKSIZE);
@@ -626,15 +632,21 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             inodo.ctime = time(NULL);
             if (nRangoBL == 0){
                 inodo.punterosDirectos[nblogico] = ptr;
+                #if DEBUG
+                    fprintf(stderr, "[traducir_bloque_inodo() -> inodo.punterosDirectos[%d] = %d\n", nblogico, ptr);
+                #endif
             } else {
                 buffer[indice] = ptr;
+                #if DEBUG
+                    fprintf(stderr, "[traducir_bloque_inodo() -> buffer[%d] = %d\n", indice , ptr);
+                #endif
                 bwrite(ptr_ant,buffer);
             }
         }
     }
 
     if(salvar_inodo == 1){
-        escribir_inodo(ninodo, &inodo); //la funcion es por referencia y aqui le damos el objeto en sí
+        escribir_inodo(ninodo, &inodo); 
     }
     return ptr;
 }

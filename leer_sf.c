@@ -36,7 +36,7 @@ void mostrar_inodo(struct inodo* inodo) {
 
 int main(int argc, char **argv) {
     struct superbloque* SB = malloc(sizeof(struct superbloque));
-    // struct inodo nodo;
+    struct inodo nodo;
     int posInodoReservado;
 
     if(argc != 2) {
@@ -120,9 +120,19 @@ int main(int argc, char **argv) {
     // printf("cantBloquesLibres despues de liberar = %d\n", SB->cantBloquesLibres);
 
     // === PRUEBAS TRADUCIR_BLOQUE_INODO === 
+    printf("%sPRUEBAS TRADUCIR_BLOQUE_INODO%s:\n", YELLOW, RESET_COLOR);
+
     posInodoReservado = reservar_inodo('f', 6);
     traducir_bloque_inodo(posInodoReservado, BLOQUE1, 1);
+    traducir_bloque_inodo(posInodoReservado, BLOQUE2, 1);
+    traducir_bloque_inodo(posInodoReservado, BLOQUE3, 1);
+    traducir_bloque_inodo(posInodoReservado, BLOQUE4, 1);
+    traducir_bloque_inodo(posInodoReservado, BLOQUE5, 1);
 
+    leer_inodo(posInodoReservado, &nodo);
+
+    printf("%sMOSTRANDO INODO %d %s:\n", YELLOW, posInodoReservado, RESET_COLOR);
+    mostrar_inodo(&nodo);
     
     free(SB);
     bumount();
