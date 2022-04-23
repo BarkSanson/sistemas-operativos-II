@@ -653,7 +653,41 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
     //TODO
     int liberar_inodo(unsigned int ninodo){
         struct inodo inodo;
-        leer_inodo(ninodo,&inodo);
+        struct superbloque SB;
+        int bloquesLiberados = 0;
+        //leemos el superbloque y el inodo a liberar
+        if(bread(0,&SB) == ERROR_EXIT) {
+            fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
+            #if DEBUG
+                fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+            #endif
+            return ERROR_EXIT;
+        }
+        
+        if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_chmod_f()]: no se ha podido leer el inodo %d\n", ninodo);
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
+        return ERROR_EXIT;
+        }
+        //liberamos los bloques a los que apunta el inodo
+        bloquesLiberados = liberar_bloques_inodo(0,&inodo);
+        inodo.numBloquesOcupados = inodo.numBloquesOcupados - bloquesLiberados;
+        //si no se han eliminado todos los bloques ha habido algún error
+        if(inodo.numBloquesOcupados != 0){
+            printf("Error, aún hay bloques en el inodo sin liberar");
+        }
+        //Al haber liberado todos los bloques del inodo este será libre y no tendrá
+        //ningun tamaño
+        inodo.tipo = 'l';
+        inodo.tamEnBytesLog = 0;
+        //hacemos que el inodo apunte al primer inodo del superbloque, aumentamos la cadena
+        inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
+        SB.posPrimerInodoLibre = ninodo;
+        SB.cantInodosLibres++;
+        //no hace falta escribir ya que pasamos por referencia
+        return ninodo;
     }
 
     int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){

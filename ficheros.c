@@ -360,3 +360,32 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
 
     return SUCCESS_EXIT;
 }
+
+int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
+    struct inodo inodo;
+    int primerBL = 0;
+    int bloquesLiberados = 0;
+
+    if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_chmod_f()]: no se ha podido leer el inodo %d\n", ninodo);
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
+        return ERROR_EXIT;
+    }
+    //TODO MIRAR SI TIENE PERMISOS DE ESCRITURA
+    if(nbytes % BLOCKSIZE == 0){
+        primerBL = nbytes/BLOCKSIZE;
+    } else {
+        primerBL = nbytes / BLOCKSIZE + 1;
+    }
+    //que libere los bloques logicos de nuestro inodo desde el primero
+    bloquesLiberados = liberar_bloques_inodo(primerBL,&inodo);
+    //tras esto modificamos nuestros atributos del inodo
+    inodo.mtime = time(NULL);
+    inodo.ctime = time(NULL);
+    inodo.tamEnBytesLog = nbytes;
+    inodo.numBloquesOcupados = inodo.numBloquesOcupados - bloquesLiberados;
+
+    return bloquesLiberados;
+}
