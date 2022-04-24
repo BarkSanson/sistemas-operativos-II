@@ -1,8 +1,8 @@
-#include "ficheros_basico.h"
 #include "ficheros.c"
 
 int main(int argc, char** argv) {
     char *path;
+    char permisos;
     int ninodo;
 
     if(argc != 3) {
@@ -16,10 +16,10 @@ int main(int argc, char** argv) {
 
     //transformamos a int el numero de inodo
     ninodo = atoi(argv[2]);
-
+    permisos = (char)argv[3];
     //llamamos a la funcion mi_chmod_f dandole el numero de inodo
     //y sus correspondientes permisos
-    mi_chmod_f(ninodo,argv[3]);
+    mi_chmod_f(ninodo,permisos);
 
     //desmontamos el dispositivo
     bumount();
