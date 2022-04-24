@@ -18,4 +18,4 @@ $(PROGRAMS): $(LIBRARIES) $(INCLUDES)
 
 .PHONY: clean
 clean:
-	rm -rf *.o *~ $(PROGRAMS) disco* ext* $(BUILD_DIR)*
+	rm -rf *.o *~ disco* ext* $(BUILD_DIR)*
