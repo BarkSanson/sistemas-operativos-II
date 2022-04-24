@@ -25,7 +25,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
         fprintf(stderr, "[Error en mi_write_f()]: error leyendo el inodo");
         #if DEBUG
-            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+            fprintf(stderr, "%s[ERROR EN LA LÍNEA %d DE FICHEROS.C]%s", RED, __LINE__, RESET_COLOR);
         #endif
         return ERROR_EXIT;
     }
@@ -51,6 +51,11 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
 
     if(primerBL == ultimoBL) {  // La operación afecta a un único bloque
+        #if DEBUG
+            fprintf(stderr, "[mi_write_f() -> Escribiendo en el bloque físico %d correspondiente al bloque lógico %d\n",
+                    nbfisico,
+                    primerBL);
+        #endif
         if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
             #if DEBUG
