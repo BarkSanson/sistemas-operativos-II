@@ -149,8 +149,8 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     // Actualizamos la metainformación del inodo
     leer_inodo(ninodo, &inodo);
 
-    if(offset >= inodo.tamEnBytesLog) {
-        inodo.tamEnBytesLog += offset;
+    if((offset + nbytes)>= inodo.tamEnBytesLog) {
+        inodo.tamEnBytesLog = offset + nbytes;
         inodo.mtime = time(NULL);
     }
 
