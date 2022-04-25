@@ -431,7 +431,7 @@ int escribir_inodo(unsigned int ninodo, struct inodo* inodo) {
     inodos[ninodo%(BLOCKSIZE/INODOSIZE)] = *inodo;
 
     if(bwrite(SB.posPrimerBloqueAI + bloqueRelativoInodo, inodos) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en escribir_inodo()]: No se ha podido escribir el bloque del inodo %d", ninodo);
+        fprintf(stderr, "[Error en escribir_inodo()]: No se ha podido escribir el bloque del inodo %d\n", ninodo);
         return ERROR_EXIT;
     }
 
@@ -444,7 +444,7 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo) {
     int bloqueRelativoInodo;
 
     if(bread(posSB, &SB) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en leer_inodo]: No se ha podido leer el superbloque");
+        fprintf(stderr, "[Error en leer_inodo]: No se ha podido leer el superbloque\n");
         return ERROR_EXIT;
     }
 
@@ -455,7 +455,7 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo) {
 
     // Leemos el bloque solicitado
     if(bread(SB.posPrimerBloqueAI + bloqueRelativoInodo, inodos) == ERROR_EXIT) {
-        fprintf(stderr, "Error leyendo bloque en leer_inodo()");
+        fprintf(stderr, "Error leyendo bloque en leer_inodo()\n");
         return ERROR_EXIT;
     }
 
@@ -472,14 +472,14 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos) {
     nodo = malloc(sizeof(struct inodo));
 
     if(bread(posSB, &SB) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en reservar_inodo]: No se ha podido leer el superbloque");
+        fprintf(stderr, "[Error en reservar_inodo]: No se ha podido leer el superbloque\n");
         free(nodo);
         return ERROR_EXIT;
     }
 
     // Si no quedan inodos libres, no podemos reservar nada
     if(SB.cantInodosLibres == 0) {
-        fprintf(stderr, "[Error en reservar_inodo()]: no quedan inodos libres");
+        fprintf(stderr, "[Error en reservar_inodo()]: no quedan inodos libres\n");
         free(nodo);
         return ERROR_EXIT;
     }
@@ -542,7 +542,7 @@ int obtener_nRangoBL(struct inodo* inodo, unsigned int nblogico, unsigned int* p
     //Si llega hasta aquí es porque no habrá entrado en ningun
     //rango de inodos
     *ptr = 0;
-    perror("Bloque lógico fuera de rango");
+    perror("Bloque lógico fuera de rango\n");
     return -1;
 }
 
@@ -575,12 +575,12 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
     } 
     
     // Si hemos llegado aquí es porque ha habido error
-    fprintf(stderr, "[Error en obtener_indice()]: no se cumple ninguna condición, se devuelve -1");
+    fprintf(stderr, "[Error en obtener_indice()]: no se cumple ninguna condición, se devuelve -1\n");
     return -1;
 }
 
 /**
- * @brief obtemer el bloque físico correspondiente de cierto inodo
+ * @brief obtener el bloque físico correspondiente de cierto inodo
  * 
  * @param ninodo numero de inodo a traducir
  * @param nblogico el numero de bloque lógico 

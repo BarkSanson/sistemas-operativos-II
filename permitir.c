@@ -1,8 +1,5 @@
 #include "ficheros.h"
-<<<<<<< HEAD
-=======
 #include "string.h"
->>>>>>> 0513becfe1e44220da1e03c71696f2b46c0bef3b
 
 int main(int argc, char** argv) {
     char *path;

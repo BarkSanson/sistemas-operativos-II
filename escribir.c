@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
         escribir_y_mostrar(ninodo, texto, OFFSET5, strlen(texto));
     } else if(diferentesInodos == 1) {
         for(int i = 0; i < NOFFSETS; i++) {
-            ninodos[i] = reservar_inodo('f', 6);
+            ninodos[i] = reservar_inodo('f', 7);
         }
 
         escribir_y_mostrar(ninodos[0], texto, OFFSET1, strlen(texto));

@@ -181,10 +181,16 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
     int nbfisico;
     int bytesLeidos;
 
-    leer_inodo(ninodo, &inodo);
+    if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_read_f()]: no se ha podido leer el inodo %d", ninodo);
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
+        return ERROR_EXIT;
+    }
     
     if((inodo.permisos & 4) != 4) {
-        fprintf(stderr, "[ERROR]: no hay permisos de escritura del fichero");
+        fprintf(stderr, "[ERROR]: no hay permisos de lectura del fichero");
         #if DEBUG
             fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
         #endif
@@ -228,7 +234,7 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
         // Lectura del primer bloque
         if(nbfisico != ERROR_EXIT) {
             if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
-                fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
+                fprintf(stderr, "[Error en mi_read_f()]: no se ha podido leer el bloque físico del inodo\n");
                 #if DEBUG
                     fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
                 #endif
@@ -249,7 +255,7 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
             nbfisico = traducir_bloque_inodo(ninodo, i, 0);
 
             if(nbfisico != ERROR_EXIT) {
-                if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
+                if(bread(nbfisico, buf_bloque + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE) == ERROR_EXIT) {
                     fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
                     #if DEBUG
                         fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
@@ -257,7 +263,7 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
                     return ERROR_EXIT;
                 }
 
-                memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
+                memcpy(buf_bloque + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE, buf_original, BLOCKSIZE - desp1);
             }
 
             bytesLeidos += BLOCKSIZE;
