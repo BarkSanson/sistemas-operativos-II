@@ -1,4 +1,5 @@
-#include "ficheros.c"
+#include "ficheros.h"
+#include "string.h"
 
 int main(int argc, char** argv) {
     char *path;
@@ -16,7 +17,7 @@ int main(int argc, char** argv) {
 
     //transformamos a int el numero de inodo
     ninodo = atoi(argv[2]);
-    permisos = (char)argv[3];
+    strcpy(argv[3],&permisos);
     //llamamos a la funcion mi_chmod_f dandole el numero de inodo
     //y sus correspondientes permisos
     mi_chmod_f(ninodo,permisos);
