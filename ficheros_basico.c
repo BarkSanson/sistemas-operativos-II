@@ -579,6 +579,14 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
     return -1;
 }
 
+/**
+ * @brief obtemer el bloque físico correspondiente de cierto inodo
+ * 
+ * @param ninodo numero de inodo a traducir
+ * @param nblogico el numero de bloque lógico 
+ * @param reservar si queremos o no reservar el inodo
+ * @return int ERROR_EXIT en caso de que haya ido mal, 
+ */
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
     struct inodo inodo;
     unsigned int ptr,ptr_ant = 0;
@@ -650,7 +658,12 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
     }
     return ptr;
 }
-    //TODO
+    /**
+     * @brief función que libera al completa un inodo
+     * 
+     * @param ninodo el número de inodo a liberar
+     * @return int el número de bloques liberados del inodo
+     */
     int liberar_inodo(unsigned int ninodo){
         struct inodo inodo;
         struct superbloque SB;
@@ -690,6 +703,13 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
         return ninodo;
     }
 
+    /**
+     * @brief libera todos los bloques de un inodo, función de apoyo de liberar inodo
+     * 
+     * @param primerBL el primer bloque lógico que presenta el inodo
+     * @param inodo el inodo al que vamos a liberar sus correspondientes bloques
+     * @return int devuelve el número de bloques liberados del inodo
+     */
     int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
         unsigned int nivel_punteros,indice,ptr,nBL,ultimoBL = 0;
         int nRangoBL = 0;
