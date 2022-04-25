@@ -75,7 +75,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
 
         // Solo escribimos un bloque, lo cual equivale 
         // a BLOCKSIZE bytes
-        bytesEscritos = BLOCKSIZE;
+        bytesEscritos = nbytes;
     } else {    // La operación afecta a más de un bloque
 
         bytesEscritos = 0;
@@ -249,13 +249,13 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
         // Lectura de los bloques intermedios
         for(int i = primerBL + 1; i < ultimoBL; i++) {
             #if DEBUG
-                fprintf(stderr, "%s<LEYENDO BLOQUE %d%s", YELLOW, i, RESET_COLOR);
+                // fprintf(stderr, "%s<LEYENDO BLOQUE %d>%s\n", YELLOW, i, RESET_COLOR);
             #endif
 
             nbfisico = traducir_bloque_inodo(ninodo, i, 0);
 
             if(nbfisico != ERROR_EXIT) {
-                if(bread(nbfisico, buf_bloque + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE) == ERROR_EXIT) {
+                if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
                     fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
                     #if DEBUG
                         fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
@@ -263,14 +263,15 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
                     return ERROR_EXIT;
                 }
 
-                memcpy(buf_bloque + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE, buf_original, BLOCKSIZE - desp1);
+                // memcpy(buf_bloque + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE, buf_original, BLOCKSIZE);
+                memcpy(buf_original, buf_bloque + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE, BLOCKSIZE);
             }
 
             bytesLeidos += BLOCKSIZE;
         }
         
         // Ultimo bloque lógico
-        nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
+        nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 0);
 
         if(nbfisico != ERROR_EXIT) {
             if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
@@ -280,7 +281,8 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
                 #endif
                 return ERROR_EXIT;
             }
-            memcpy(buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
+            // memcpy(buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
+            memcpy(buf_original + (nbytes - desp2 - 1), buf_bloque, desp2 + 1);
         }
 
 

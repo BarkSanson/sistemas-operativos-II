@@ -14,7 +14,7 @@ void mostrar_stat(struct STAT* stat) {
 
 void escribir_y_mostrar(
     unsigned int ninodo, 
-    const void* buffer, 
+    const char* buffer, 
     unsigned int offset, 
     unsigned int bytes) 
     {
@@ -62,7 +62,8 @@ int main(int argc, char** argv) {
         escribir_y_mostrar(ninodo, texto, OFFSET5, strlen(texto));
     } else if(diferentesInodos == 1) {
         for(int i = 0; i < NOFFSETS; i++) {
-            ninodos[i] = reservar_inodo('f', 7);
+            ninodos[i] = reservar_inodo('f', 6);
+            fprintf(stderr, "INODO RESERVADO %d\n", ninodos[i]);
         }
 
         escribir_y_mostrar(ninodos[0], texto, OFFSET1, strlen(texto));

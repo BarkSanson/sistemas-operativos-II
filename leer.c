@@ -1,11 +1,12 @@
 #include "ficheros.h"
 
-#define TAM_BUFFER 1500
+#define TAM_BUFFER 100 * BLOCKSIZE
 
 int main(int argc, char** argv) {
     struct STAT stat;
-    int leidos;
-    int leidosActual = 1;
+    struct inodo inodo;
+    int totalLeidos;
+    int leidosActual;
     int offset;
     unsigned int ninodo;
     char buffer[TAM_BUFFER];
@@ -18,7 +19,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-
     printf("%sEJECUTANDO TEST LEER.C%s\n", BOLD_GREEN, RESET_COLOR);
 
     offset = 0;
@@ -26,20 +26,23 @@ int main(int argc, char** argv) {
 
     bmount(argv[1]);
 
-    //leidosActual = 1 al inicio para que entre
-    while(leidosActual > 0) {
+    // mi_stat_f(ninodo, &stat);
+    leer_inodo(ninodo, &inodo);
+    memset(buffer, 0, TAM_BUFFER);
+
+    fprintf(stderr, "ninodo = %d\n", ninodo);
+    fprintf(stderr, "tamEnBytesLog = %d\n", inodo.tamEnBytesLog);
+
+    while((leidosActual = mi_read_f(ninodo, buffer, offset, TAM_BUFFER)) > 0 && (totalLeidos < inodo.tamEnBytesLog)) {
+        // fprintf(stderr, "Leyendo inodo %d con el offset %d\n", ninodo, offset);
+        fwrite(buffer, sizeof(char), leidosActual, stdout);
+        totalLeidos += leidosActual;
         offset += TAM_BUFFER;
-        memset(buffer, 0, leidos);
-        leidosActual = mi_read_f(ninodo, buffer, offset, TAM_BUFFER);
-        write(1, buffer, leidos);
-        leidos += leidosActual;
+        memset(buffer, 0, TAM_BUFFER);
     }
 
-    mi_stat_f(ninodo, &stat);
-
-    printf("Total de bytes leidos: %d\n", leidos);
-    printf("tamEnBytesLog del inodo leido: %d\n", stat.tamEnBytesLog);
-
+    printf("Total de bytes leidos: %d\n", totalLeidos);
+    printf("tamEnBytesLog del inodo leido: %d\n", inodo.tamEnBytesLog);
 
     bumount();
     return 0;
