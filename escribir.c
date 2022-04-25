@@ -20,7 +20,7 @@ void escribir_y_mostrar(
     {
     struct STAT stat;
 
-    if(mi_write_f(ninodo, buffer, offset, sizeof(buffer)) == ERROR_EXIT) {
+    if(mi_write_f(ninodo, buffer, offset, strlen(buffer)) == ERROR_EXIT) {
         fprintf(stderr, "[Error]: Error escribiendo en el inodo %d\n", ninodo);
     }
 
@@ -43,34 +43,33 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    texto = argv[2];
+    texto = malloc(strlen(argv[2]));
+    strcpy(texto, argv[2]);
     diferentesInodos = atoi(argv[3]);
     
     printf("%sEJECUTANDO TEST ESCRIBIR.C%s\n", BOLD_GREEN, RESET_COLOR);
-    printf("Tamanyo en bytes de la entrada: %ld\n", sizeof(texto));
-
-    printf("%ld\n", sizeof(texto));
+    printf("Tamanyo de la entrada: %ld\n", strlen(texto));
 
     bmount(argv[1]);
 
     if(diferentesInodos == 0) { // Si es 0, reservamos sólo un inodo
         ninodo = reservar_inodo('f', 6);
 
-        escribir_y_mostrar(ninodo, texto, OFFSET1, sizeof(texto));
-        escribir_y_mostrar(ninodo, texto, OFFSET2, sizeof(texto));
-        escribir_y_mostrar(ninodo, texto, OFFSET3, sizeof(texto));
-        escribir_y_mostrar(ninodo, texto, OFFSET4, sizeof(texto));
-        escribir_y_mostrar(ninodo, texto, OFFSET5, sizeof(texto));
+        escribir_y_mostrar(ninodo, texto, OFFSET1, strlen(texto));
+        escribir_y_mostrar(ninodo, texto, OFFSET2, strlen(texto));
+        escribir_y_mostrar(ninodo, texto, OFFSET3, strlen(texto));
+        escribir_y_mostrar(ninodo, texto, OFFSET4, strlen(texto));
+        escribir_y_mostrar(ninodo, texto, OFFSET5, strlen(texto));
     } else if(diferentesInodos == 1) {
         for(int i = 0; i < NOFFSETS; i++) {
             ninodos[i] = reservar_inodo('f', 6);
         }
 
-        escribir_y_mostrar(ninodos[0], texto, OFFSET1, sizeof(texto));
-        escribir_y_mostrar(ninodos[1], texto, OFFSET2, sizeof(texto));
-        escribir_y_mostrar(ninodos[2], texto, OFFSET3, sizeof(texto));
-        escribir_y_mostrar(ninodos[3], texto, OFFSET4, sizeof(texto));
-        escribir_y_mostrar(ninodos[4], texto, OFFSET5, sizeof(texto));
+        escribir_y_mostrar(ninodos[0], texto, OFFSET1, strlen(texto));
+        escribir_y_mostrar(ninodos[1], texto, OFFSET2, strlen(texto));
+        escribir_y_mostrar(ninodos[2], texto, OFFSET3, strlen(texto));
+        escribir_y_mostrar(ninodos[3], texto, OFFSET4, strlen(texto));
+        escribir_y_mostrar(ninodos[4], texto, OFFSET5, strlen(texto));
     }
 
     bumount();

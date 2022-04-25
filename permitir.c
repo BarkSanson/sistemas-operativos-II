@@ -1,4 +1,4 @@
-#include "ficheros.c"
+#include "ficheros.h"
 
 int main(int argc, char** argv) {
     char *path;
@@ -6,9 +6,13 @@ int main(int argc, char** argv) {
     int ninodo;
 
     if(argc != 3) {
-        fprintf(stderr, "Número de argumentos inválido, son necesarios 3 argumentos: [nombre_dispositivo] [número_de_inodo] [permisos_inodo]");
+        fprintf(stderr, "%sNúmero de argumentos inválido, son necesarios 3 argumentos:%s\n\tpermitir <nombre_dispositivo> <número_de_inodo> <permisos_inodo>",
+        RED,
+        RESET_COLOR);
         return EXIT_FAILURE;
     }
+
+    printf("%sEJECUTANDO TEST PERMITIR.C%s\n", BOLD_GREEN, RESET_COLOR);
      
     //montamos el dispositivo 
     path = argv[1];
@@ -23,4 +27,6 @@ int main(int argc, char** argv) {
 
     //desmontamos el dispositivo
     bumount();
+
+    return 0;
 }
