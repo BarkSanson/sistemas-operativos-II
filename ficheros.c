@@ -149,8 +149,8 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     // Actualizamos la metainformación del inodo
     leer_inodo(ninodo, &inodo);
 
-    if((offset + nbytes)>= inodo.tamEnBytesLog) {
-        inodo.tamEnBytesLog = offset + nbytes;
+    if(offset >= inodo.tamEnBytesLog) {
+        inodo.tamEnBytesLog += offset;
         inodo.mtime = time(NULL);
     }
 
@@ -366,13 +366,20 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
     return SUCCESS_EXIT;
 }
 
+/**
+ * @brief se trunca un fichero con una largaria y inodo determinados
+ * 
+ * @param ninodo el inodo correspondiente al fichero
+ * @param nbytes la largaria del fichero
+ * @return int el número de bloques liberados
+ */
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     struct inodo inodo;
     int primerBL = 0;
     int bloquesLiberados = 0;
 
     if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en mi_chmod_f()]: no se ha podido leer el inodo %d\n", ninodo);
+        fprintf(stderr, "[Error en mi_truncar_f()]: no se ha podido leer el inodo %d\n", ninodo);
         #if DEBUG
             fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
         #endif
