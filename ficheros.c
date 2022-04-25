@@ -393,7 +393,16 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
         #endif
         return ERROR_EXIT;
     }
-    //TODO MIRAR SI TIENE PERMISOS DE ESCRITURA
+
+    //comprobamos que el inodo tenga permisos de escritura
+    if((inodo.permisos & 2) != 2){
+        printf(stderr,"EL INODO NO TIENE PERMISOS DE ESCRITURA");
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
+        return ERROR_EXIT;
+    }
+
     if(nbytes % BLOCKSIZE == 0){
         primerBL = nbytes/BLOCKSIZE;
     } else {
@@ -406,6 +415,15 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     inodo.ctime = time(NULL);
     inodo.tamEnBytesLog = nbytes;
     inodo.numBloquesOcupados = inodo.numBloquesOcupados - bloquesLiberados;
+
+    //escribimos finalmente el inodo
+    if(escribir_inodo(ninodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_truncar_f()]: no se ha podido escribir el inodo %d\n", ninodo);
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
+        return ERROR_EXIT;
+    }
 
     return bloquesLiberados;
 }
