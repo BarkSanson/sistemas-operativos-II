@@ -580,7 +580,7 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
 }
 
 /**
- * @brief 
+ * @brief obtemer el bloque físico correspondiente de cierto inodo
  * 
  * @param ninodo numero de inodo a traducir
  * @param nblogico el numero de bloque lógico 
