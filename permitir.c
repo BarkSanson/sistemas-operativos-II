@@ -6,7 +6,7 @@ int main(int argc, char** argv) {
     char permisos;
     int ninodo;
 
-    if(argc != 3) {
+    if(argc != 4) {
         fprintf(stderr, "%sNúmero de argumentos inválido, son necesarios 3 argumentos:%s\n\tpermitir <nombre_dispositivo> <número_de_inodo> <permisos_inodo>",
         RED,
         RESET_COLOR);

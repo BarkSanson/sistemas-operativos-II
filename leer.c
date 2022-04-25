@@ -5,6 +5,7 @@
 int main(int argc, char** argv) {
     struct STAT stat;
     int leidos;
+    int leidosActual = 1;
     int offset;
     unsigned int ninodo;
     char buffer[TAM_BUFFER];
@@ -25,12 +26,13 @@ int main(int argc, char** argv) {
 
     bmount(argv[1]);
 
-    leidos = mi_read_f(ninodo, buffer, offset, TAM_BUFFER);
-    while(leidos > 0) {
+    //leidosActual = 1 al inicio para que entre
+    while(leidosActual > 0) {
         offset += TAM_BUFFER;
         memset(buffer, 0, leidos);
-        leidos += mi_read_f(ninodo, buffer, offset, TAM_BUFFER);
+        leidosActual = mi_read_f(ninodo, buffer, offset, TAM_BUFFER);
         write(1, buffer, leidos);
+        leidos += leidosActual;
     }
 
     mi_stat_f(ninodo, &stat);
