@@ -2,7 +2,7 @@
  * 
  * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
  */ 
-#include "ficheros_basico.h"
+#include "directorios.h"
 
 int main(int argc, char **argv) {
     char *path;
