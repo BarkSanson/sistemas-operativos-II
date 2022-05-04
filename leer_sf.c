@@ -55,19 +55,19 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // printf("%sDATOS DEL SUPERBLOQUE%s:\n", YELLOW, RESET_COLOR);
-    // printf("posPrimerBLoqueMB = %d\n", SB->posPrimerBloqueMB);
-    // printf("posUltimoBLoqueMB = %d\n", SB->posUltimoBloqueMB);
-    // printf("posPrimerBloqueAI = %d\n", SB->posPrimerBloqueAI);
-    // printf("posUltimoBloqueAI = %d\n", SB->posUltimoBloqueAI);
-    // printf("posPrimerBloqueDatos = %d\n", SB->posPrimerBloqueDatos);
-    // printf("posUltimoBloqueDatos = %d\n", SB->posUltimoBloqueDatos);
-    // printf("posInodoRaiz = %d\n", SB->posInodoRaiz); 
-    // printf("posPrimerInodoLibre = %d\n", SB->posPrimerInodoLibre);
-    // printf("cantBloquesLibres = %d\n", SB->cantBloquesLibres);
-    // printf("cantInodosLibres = %d\n", SB->cantInodosLibres);
-    // printf("totBloques = %d\n", SB->totBloques); 
-    // printf("totInodos = %d\n", SB->totInodos);
+    printf("%sDATOS DEL SUPERBLOQUE%s:\n", YELLOW, RESET_COLOR);
+    printf("posPrimerBLoqueMB = %d\n", SB->posPrimerBloqueMB);
+    printf("posUltimoBLoqueMB = %d\n", SB->posUltimoBloqueMB);
+    printf("posPrimerBloqueAI = %d\n", SB->posPrimerBloqueAI);
+    printf("posUltimoBloqueAI = %d\n", SB->posUltimoBloqueAI);
+    printf("posPrimerBloqueDatos = %d\n", SB->posPrimerBloqueDatos);
+    printf("posUltimoBloqueDatos = %d\n", SB->posUltimoBloqueDatos);
+    printf("posInodoRaiz = %d\n", SB->posInodoRaiz); 
+    printf("posPrimerInodoLibre = %d\n", SB->posPrimerInodoLibre);
+    printf("cantBloquesLibres = %d\n", SB->cantBloquesLibres);
+    printf("cantInodosLibres = %d\n", SB->cantInodosLibres);
+    printf("totBloques = %d\n", SB->totBloques); 
+    printf("totInodos = %d\n", SB->totInodos);
 
     // printf("RESERVAMOS UN BLOQUE Y LUEGO LO LIBERAMOS\n");
     // bloqueReservado = reservar_bloque();

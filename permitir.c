@@ -11,14 +11,12 @@ int main(int argc, char** argv) {
     int ninodo;
 
     if(argc != 4) {
-        fprintf(stderr, "%sNúmero de argumentos inválido, son necesarios 3 argumentos:%s\n\tpermitir <nombre_dispositivo> <número_de_inodo> <permisos_inodo>",
+        fprintf(stderr, "%sNúmero de argumentos inválido, son necesarios 3 argumentos:%s\n\tpermitir <nombre_dispositivo> <número_de_inodo> <permisos_inodo>\n",
         RED,
         RESET_COLOR);
         return EXIT_FAILURE;
     }
 
-    printf("%sEJECUTANDO TEST PERMITIR.C%s\n", BOLD_GREEN, RESET_COLOR);
-     
     //montamos el dispositivo 
     path = argv[1];
     bmount(path);

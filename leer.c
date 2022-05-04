@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
         memset(buffer, 0, TAM_BUFFER);
     }
 
-    printf("Total de bytes leidos: %d\n", totalLeidos);
+    printf("\nTotal de bytes leidos: %d\n", totalLeidos);
     printf("tamEnBytesLog del inodo leido: %d\n", stat.tamEnBytesLog);
 
     bumount();
