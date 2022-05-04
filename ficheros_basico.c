@@ -514,8 +514,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos) {
 
     // Actualizamos la lista enlazada de inodos libres 
     posInodoReservado = SB.posPrimerInodoLibre;
-    leer_inodo(posInodoReservado, nodo);
-    SB.posPrimerInodoLibre = nodo->punterosDirectos[0];
+    SB.posPrimerInodoLibre++;
 
     // Inicializamos los campos del inodo
     nodo->tipo = tipo;
@@ -529,10 +528,16 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos) {
     for(int i = 0; i < 12; i++) nodo->punterosDirectos[i] = 0;
     for(int i = 0; i < 3; i++) nodo->punterosIndirectos[i] = 0;
 
-    escribir_inodo(posInodoReservado, nodo);
+    if(escribir_inodo(posInodoReservado, nodo) == ERROR_EXIT){
+        printf("ERROR ESCRIBIENDO EL INODO %d EN RESERVAR_INODO()",posInodoReservado);
+        return ERROR_EXIT;
+    }
 
     SB.cantInodosLibres--;
-    bwrite(posSB, &SB);
+    if(bwrite(posSB, &SB) == ERROR_EXIT){
+        printf("ERROR ESCRIBIENDO EL SUPERBLOQUE EN RESERVAR_INODO()");
+        return ERROR_EXIT;
+    }
 
     free(nodo);
     return posInodoReservado;
