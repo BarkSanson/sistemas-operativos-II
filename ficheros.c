@@ -396,7 +396,7 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
 
     //comprobamos que el inodo tenga permisos de escritura
     if((inodo.permisos & 2) != 2){
-        printf(stderr,"EL INODO NO TIENE PERMISOS DE ESCRITURA");
+        fprintf(stderr,"[Error]: El inodo no tiene permisos de escritura");
         #if DEBUG
             fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
         #endif

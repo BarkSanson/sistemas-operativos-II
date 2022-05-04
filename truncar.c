@@ -1,3 +1,7 @@
+/**
+ * 
+ * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
+ */ 
 #include "ficheros.h"
 #include "ficheros_basico.h"
 #include "bloques.h"

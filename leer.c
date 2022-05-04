@@ -1,10 +1,13 @@
+/**
+ * 
+ * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
+ */ 
 #include "ficheros.h"
 
 #define TAM_BUFFER 100 * BLOCKSIZE
 
 int main(int argc, char** argv) {
     struct STAT stat;
-    struct inodo inodo;
     int totalLeidos;
     int leidosActual;
     int offset;
@@ -26,14 +29,13 @@ int main(int argc, char** argv) {
 
     bmount(argv[1]);
 
-    // mi_stat_f(ninodo, &stat);
-    leer_inodo(ninodo, &inodo);
+    mi_stat_f(ninodo, &stat);
     memset(buffer, 0, TAM_BUFFER);
 
     fprintf(stderr, "ninodo = %d\n", ninodo);
-    fprintf(stderr, "tamEnBytesLog = %d\n", inodo.tamEnBytesLog);
+    fprintf(stderr, "tamEnBytesLog = %d\n", stat.tamEnBytesLog);
 
-    while((leidosActual = mi_read_f(ninodo, buffer, offset, TAM_BUFFER)) > 0 && (totalLeidos < inodo.tamEnBytesLog)) {
+    while((leidosActual = mi_read_f(ninodo, buffer, offset, TAM_BUFFER)) > 0 && (totalLeidos < stat.tamEnBytesLog)) {
         // fprintf(stderr, "Leyendo inodo %d con el offset %d\n", ninodo, offset);
         fwrite(buffer, sizeof(char), leidosActual, stdout);
         totalLeidos += leidosActual;
@@ -42,7 +44,7 @@ int main(int argc, char** argv) {
     }
 
     printf("Total de bytes leidos: %d\n", totalLeidos);
-    printf("tamEnBytesLog del inodo leido: %d\n", inodo.tamEnBytesLog);
+    printf("tamEnBytesLog del inodo leido: %d\n", stat.tamEnBytesLog);
 
     bumount();
     return 0;
