@@ -147,14 +147,20 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     }
 
     // Actualizamos la metainformación del inodo
-    leer_inodo(ninodo, &inodo);
+    if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el inodo %d", ninodo);
+        return ERROR_EXIT;
+    }
 
-    if(offset + nbytes >= inodo.tamEnBytesLog) {
+    if((offset + nbytes) > inodo.tamEnBytesLog) {
         inodo.tamEnBytesLog = offset + nbytes;
         inodo.mtime = time(NULL);
     }
 
-    escribir_inodo(ninodo, &inodo);
+    if(escribir_inodo(ninodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el inodo %d", ninodo);
+        return ERROR_EXIT;
+    }
 
     return bytesEscritos; 
 }
@@ -224,7 +230,7 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
                 return ERROR_EXIT;
             }
 
-            memcpy(buf_bloque + desp1, buf_original, nbytes);
+            memcpy(buf_original, buf_bloque + desp1, nbytes);
         }
 
         bytesLeidos = nbytes;
@@ -241,7 +247,7 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
                 return ERROR_EXIT;
             }
 
-            memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
+            memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
         }
 
         bytesLeidos += BLOCKSIZE - desp1;
@@ -263,8 +269,7 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
                     return ERROR_EXIT;
                 }
 
-                // memcpy(buf_bloque + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE, buf_original, BLOCKSIZE);
-                memcpy(buf_original, buf_bloque + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE, BLOCKSIZE);
+                memcpy(buf_original + (BLOCKSIZE - desp1) + (i - primerBL - 1) * BLOCKSIZE, buf_bloque, BLOCKSIZE);
             }
 
             bytesLeidos += BLOCKSIZE;
@@ -362,6 +367,7 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
     }
 
     inodo.permisos = permisos;
+    inodo.mtime = time(NULL);
 
     if(escribir_inodo(ninodo, &inodo) == ERROR_EXIT) {
         fprintf(stderr, "[Error en mi_chmod_f()]: no se ha podido escribir el inodo %d\n", ninodo);
@@ -401,6 +407,11 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
             fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
         #endif
         return ERROR_EXIT;
+    }
+
+    if(nbytes > inodo.tamEnBytesLog) {
+        fprintf(stderr, "[Error en mi_truncar_f(): nbytes > tamEnBytesLog\n");
+        return EXIT_FAILURE;
     }
 
     if(nbytes % BLOCKSIZE == 0){

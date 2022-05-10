@@ -36,10 +36,6 @@ void mostrar_inodo(struct inodo* inodo) {
 
 int main(int argc, char **argv) {
     struct superbloque* SB = malloc(sizeof(struct superbloque));
-    struct inodo nodo;
-    int bloqueReservado = 0;
-    int posInodoReservado;
-    int entrada;
 
     if(argc != 2) {
         fprintf(stderr, "Número de argumentos inválido: son necesarios 1 argumento con la forma \n\tleer_sf <fichero>");
@@ -49,7 +45,6 @@ int main(int argc, char **argv) {
     printf("%sEJECUTANDO TEST LEER_SF.C%s\n", BOLD_GREEN, RESET_COLOR);
 
     bmount(argv[1]);
-    entrada = atoi(argv[1]);
 
     if(bread(posSB, SB) == ERROR_EXIT) {
         return 1;

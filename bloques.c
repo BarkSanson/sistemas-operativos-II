@@ -27,17 +27,15 @@ int bmount(const char *camino) {
  * @returns     SUCCESS_EXIT si ha funcionado bien
  *              ERROR_EXIT si ha habido un error     
 */
-int bumount(){
-    int error;
-
-    error = close(fd);
-    if(error == -1){
+int bumount() {
+    if(close(fd)== -1){
         fprintf(stderr,"Error %d desmontando el sistema de ficeros: %s\n", errno, strerror(errno));
         return ERROR_EXIT;
     }
 
     return SUCCESS_EXIT;
 }
+
 /**
  * Escribe un contenido en un bloque elegido
  * 
