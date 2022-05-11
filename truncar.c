@@ -14,7 +14,6 @@ int main(int argc, char** argv){
     int nbytes;
     int num_inodo;
     int bloquesInodo;
-    int bloquesLiberados = 0;
     int bloquesLibres;
     struct inodo inodo;
     struct superbloque SB;
@@ -22,6 +21,7 @@ int main(int argc, char** argv){
 
     if(argc != 4){
         fprintf(stderr, "Error al introducir el comando, la sintaxis debe ser [nombre_dispositivo] [ninodo] [nbytes]");
+        return 1;
     }
 
     path = argv[1];
@@ -31,6 +31,7 @@ int main(int argc, char** argv){
     printf("%sEJECUTANDO TEST TRUNCAR.C%s\n", BOLD_GREEN, RESET_COLOR);
 
     bmount(path);
+
     leer_inodo(num_inodo,&inodo);
     bloquesInodo = inodo.numBloquesOcupados;
     bread(posSB,&SB);
@@ -41,15 +42,22 @@ int main(int argc, char** argv){
 
 
     if(nbytes == 0){
-        liberar_inodo(num_inodo);
-        #if DEBUG
-            printf("LIBERANDO EL INODO %d",num_inodo);
+        #if DEBUG6
+            fprintf(stderr, "truncar.c -> Liberando el inodo %d",
+            num_inodo);
         #endif
+        if(liberar_inodo(num_inodo) == ERROR_EXIT) {
+            fprintf(stderr, "truncar.c: Error al liberar el inodo %d",
+            num_inodo);
+            return 1;
+        }
     } else {
-        #if DEBUG
-            printf("LIBERANDO LOS BLOQUES DEL INODO %d",num_inodo);
+        #if DEBUG6
+            fprintf(stderr, 
+            "truncar.c -> Liberando los bloques del inodo %d",
+            num_inodo);
         #endif
-        bloquesLiberados = mi_truncar_f(num_inodo,nbytes);
+        mi_truncar_f(num_inodo,nbytes);
     }
 
     if(escribir_inodo(num_inodo, &inodo) == ERROR_EXIT) {
@@ -70,4 +78,5 @@ int main(int argc, char** argv){
 
     bumount(path);
 
+    return 0;
 }

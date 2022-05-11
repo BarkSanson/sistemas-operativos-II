@@ -19,14 +19,17 @@ int main(int argc, char** argv) {
 
     //montamos el dispositivo 
     path = argv[1];
+    ninodo = atoi(argv[2]);
+    permisos = atoi(argv[3]);
+
     bmount(path);
 
-    //transformamos a int el numero de inodo
-    ninodo = atoi(argv[2]);
-    strcpy(argv[3],&permisos);
     //llamamos a la funcion mi_chmod_f dandole el numero de inodo
     //y sus correspondientes permisos
-    mi_chmod_f(ninodo,permisos);
+    if(mi_chmod_f(ninodo, permisos) == ERROR_EXIT) {
+        fprintf(stderr, "permitir.c: No se han podido modificar los eprsmisos del inodo %d", 
+        ninodo);
+    }
 
     //desmontamos el dispositivo
     bumount();
