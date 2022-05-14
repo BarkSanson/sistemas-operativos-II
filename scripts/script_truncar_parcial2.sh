@@ -1,7 +1,8 @@
 
-echo "$ rm disco"
+cd ..
 make clean
 make
+cd build
 rm disco
 echo "$ ./mi_mkfs disco 100000"
 echo "#inicializamos el sistema de ficheros con 100.000 bloques"
@@ -10,8 +11,8 @@ echo "#inicializamos el sistema de ficheros con 100.000 bloques"
 echo "$ ./leer_sf disco"
 ./leer_sf disco
 
-echo "$ ./escribir disco "$(cat texto2.txt)" 0"
-./escribir disco "$(cat texto2.txt)" 0
+echo "$ ./escribir disco "$(cat ../scripts/texto2.txt)" 0"
+./escribir disco "$(cat ../scripts/texto2.txt)" 0
 
 echo "$ ./leer_sf disco"
 ./leer_sf disco

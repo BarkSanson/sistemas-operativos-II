@@ -421,6 +421,7 @@ int liberar_bloque(unsigned int nbloque){
     //cogemos los datos del superbloque y liberamos
     //el bloque en el MB
     if(bread(posSB, &SB) == ERROR_EXIT){
+        fprintf(stderr, "[Error en liberar_bloque()]: no se ha podido leer el superbloque");
         return ERROR_EXIT;
     }
 
@@ -428,7 +429,14 @@ int liberar_bloque(unsigned int nbloque){
 
     //aumentamos el numero de bloques libres en el SB
     SB.cantBloquesLibres++;
-    bwrite(posSB, &SB);
+    #if DEBUG3
+        fprintf(stderr, "[liberar_bloque() -> Cantidad de bloques libres: %d]\n", SB.cantBloquesLibres);
+    #endif
+
+    if(bwrite(posSB, &SB) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en liberar_bloque()]: no se ha podido escribir el superbloque");
+        return ERROR_EXIT;
+    }
 
     return nbloque;
 }
@@ -735,21 +743,12 @@ int liberar_inodo(unsigned int ninodo){
     struct inodo inodo;
     struct superbloque SB;
     int bloquesLiberados = 0;
-
-    //leemos el superbloque y el inodo a liberar
-    if(bread(posSB, &SB) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
+ 
+    if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_chmod_f()]: no se ha podido leer el inodo %d\n", ninodo);
         #if DEBUG
             fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
         #endif
-        return ERROR_EXIT;
-    }
-    
-    if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
-    fprintf(stderr, "[Error en mi_chmod_f()]: no se ha podido leer el inodo %d\n", ninodo);
-    #if DEBUG
-        fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
-    #endif
     return ERROR_EXIT;
     }
     //liberamos los bloques a los que apunta el inodo
@@ -758,6 +757,14 @@ int liberar_inodo(unsigned int ninodo){
     //si no se han eliminado todos los bloques ha habido algún error
     if(inodo.numBloquesOcupados != 0){
         printf("Error, aún hay bloques en el inodo sin liberar");
+        return ERROR_EXIT;
+    }
+
+    if(bread(posSB, &SB) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico del inodo\n");
+        #if DEBUG
+            fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
+        #endif
         return ERROR_EXIT;
     }
     //Al haber liberado todos los bloques del inodo este será libre y no tendrá
@@ -769,16 +776,20 @@ int liberar_inodo(unsigned int ninodo){
     SB.posPrimerInodoLibre = ninodo;
     SB.cantInodosLibres++;
 
+
     //no hace falta escribir ya que pasamos por referencia
     if(escribir_inodo(ninodo, &inodo) == ERROR_EXIT) {
         fprintf(stderr, "[Error en liberar_inodo()]: no se ha podido escribir el indoo %d\n", ninodo);
         return ERROR_EXIT;
     }
 
+    fprintf(stderr, "[liberar_inodo() -> SB.cantBloquesLibres = %d\n", SB.cantBloquesLibres);
+
     if (bwrite(posSB, &SB) == EXIT_FAILURE) {
         fprintf(stderr, "[Error en liberar_inodo()]: no se ha podido escribir el superbloque\n");
         return ERROR_EXIT;
     }
+
     return ninodo;
 }
 
@@ -800,10 +811,10 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
 
     //Si no hay nada en ese inodo no hay bloques a liberar
     if(inodo->tamEnBytesLog == 0){
-        return EXIT_SUCCESS;
+        return 0;
     }
     //Determinamos cuantos bloques tiene el inodo
-    if(inodo->tamEnBytesLog % BLOCKSIZE == 0){
+    if((inodo->tamEnBytesLog % BLOCKSIZE) == 0){
         ultimoBL = (inodo->tamEnBytesLog / BLOCKSIZE) - 1;
     } else {
         ultimoBL = inodo->tamEnBytesLog / BLOCKSIZE;
@@ -823,7 +834,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     for(nBL = primerBL; nBL <= ultimoBL; nBL++){
         nRangoBL = obtener_nRangoBL(inodo,nBL,&ptr);
         if(nRangoBL < 0){
-            printf("Error al obtener el rango de bloque lógico");
+            printf("Error al obtener el rango de bloque lógico\n");
         }
         nivel_punteros = nRangoBL;
 
@@ -848,6 +859,12 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
         if(ptr>0){
             liberar_bloque(ptr);
             liberados++;
+            #if DEBUG6            
+                fprintf(stderr, "[liberar_bloques_inodo() -> Liberado BF %d de datos para BL %d]\n",
+                ptr,
+                nBL);
+            #endif
+
             if(nRangoBL == 0) {
                 inodo->punterosDirectos[nBL] = 0;
             } else {
@@ -861,6 +878,12 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
                         //No quedan más bloques ocupados, liberar bloque punteros
                         liberar_bloque(ptr);
                         liberados++;
+                        #if DEBUG6            
+                            fprintf(stderr, "[liberar_bloques_inodo() -> Liberado BF %d de punteros_nivel%d para BL %d]\n",
+                            ptr,
+                            nivel_punteros,
+                            nBL);
+                        #endif
 
                         if(nivel_punteros == nRangoBL){
                             inodo->punterosIndirectos[nRangoBL - 1] = 0;
@@ -882,7 +905,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     }
 
     #if DEBUG6
-        fprintf(stderr, "[liberar_bloques_inodo() -> Total bloques liberados: %d", liberados);
+        fprintf(stderr, "[liberar_bloques_inodo() -> Total bloques liberados: %d\n", liberados);
     #endif
 
     return liberados;

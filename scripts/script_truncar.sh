@@ -1,8 +1,10 @@
 echo "################################################################################"
 echo "$ rm disco"
+cd ..
 make clean
 make
-rm disco
+cd build
+
 echo "$ ./mi_mkfs disco 100000"
 echo "#inicializamos el sistema de ficheros con 100.000 bloques"
 ./mi_mkfs disco 100000
