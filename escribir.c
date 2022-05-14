@@ -4,6 +4,8 @@
  */ 
 #include "ficheros.h"
 
+#define DEBUGESCRIBIR 0
+
 void mostrar_stat(struct STAT* stat) {
     fprintf(stderr, "stat.tamEnBytesLog = %d\n", stat->tamEnBytesLog);
     fprintf(stderr, "stat.numBloquesOcupados = %d XD LOL\n", stat->numBloquesOcupados);
@@ -15,7 +17,7 @@ int main(int argc, char** argv) {
     char diferentesInodos;
     char* texto;
     int offsets[5] = {9000, 209000, 30725000, 409605000, 480000000};
-    
+
     if(argc != 4) {
         printf("%s[Error en la sintaxis]:%s la sintaxis del comando ha de ser:\n\tescribir <nombre_dispositivo> <\"$(cat fichero)\"> <diferentes_inodos>\n", 
         RED, 
@@ -66,6 +68,14 @@ int main(int argc, char** argv) {
                 offsets[i]);
                 return 1;
             }
+
+            #if DEBUGESCRIBIR
+                char* buffer[strlen(texto)];
+                memset(buffer, 0, strlen(texto));
+                int bytesLeidos = mi_read_f(ninodo, buffer, offsets[i], strlen(texto));
+                write(1, buffer, strlen(texto)); 
+                printf("\n[DEBUG]: Bytes leidos en escribir.c: %d", bytesLeidos);
+            #endif
 
             fprintf(stderr, "Bytes escritos: %d\n", bytesEscritos);
             fprintf(stderr, "Mostrando inodo %d con offset %d\n",

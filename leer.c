@@ -25,6 +25,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "%sEJECUTANDO TEST LEER.C%s\n", BOLD_GREEN, RESET_COLOR);
 
     offset = 0;
+    totalLeidos = 0;
     ninodo = atoi(argv[2]);
 
     bmount(argv[1]);
@@ -33,7 +34,7 @@ int main(int argc, char** argv) {
     memset(buffer, 0, TAM_BUFFER);
 
     while((leidosActual = mi_read_f(ninodo, buffer, offset, TAM_BUFFER)) > 0 && (totalLeidos < stat.tamEnBytesLog)) {
-        write(2, buffer, leidosActual);
+        write(1, buffer, leidosActual);
         totalLeidos += leidosActual;
         offset += TAM_BUFFER;
         memset(buffer, 0, TAM_BUFFER);

@@ -108,7 +108,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
 
             nbfisico = traducir_bloque_inodo(ninodo, i, 1);
 
-            if(bwrite(nbfisico, buf_original + (BLOCKSIZE - desp1) + (i - primerBL) * BLOCKSIZE) == ERROR_EXIT) {
+            if(bwrite(nbfisico, buf_original + (BLOCKSIZE - desp1) + (i - primerBL - 1) * BLOCKSIZE) == ERROR_EXIT) {
                 fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el bloque físico %d del inodo\n", i);
                 #if DEBUG
                     fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
