@@ -64,6 +64,13 @@ int main(int argc, char **argv) {
     printf("totBloques = %d\n", SB.totBloques); 
     printf("totInodos = %d\n", SB.totInodos);
 
+    char inicial[100];
+    char final[100];
+    char tipo[100];
+    extraer_camino("/dir1/dir2/fichero", inicial, final, tipo);
+    extraer_camino("/dir/", inicial, final, tipo);
+    extraer_camino("/fichero", inicial, final, tipo);
+
     // printf("RESERVAMOS UN BLOQUE Y LUEGO LO LIBERAMOS\n");
     // bloqueReservado = reservar_bloque();
     // printf("Se ha reservado el bloque físico %d\n",bloqueReservado);

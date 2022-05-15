@@ -2,9 +2,9 @@ CC=gcc
 CFLAGS=-c -g -Wall -std=gnu99 -lm
 
 BUILD_DIR=build/
-SOURCES=mi_mkfs.c bloques.c ficheros_basico.c ficheros.c leer_sf.c escribir.c leer.c permitir.c truncar.c
-LIBRARIES=$(BUILD_DIR)bloques.o $(BUILD_DIR)ficheros_basico.o $(BUILD_DIR)ficheros.o
-INCLUDES=bloques.h ficheros_basico.h ficheros.h
+SOURCES=mi_mkfs.c bloques.c ficheros_basico.c ficheros.c directorios.c leer_sf.c escribir.c leer.c permitir.c truncar.c
+LIBRARIES=$(BUILD_DIR)bloques.o $(BUILD_DIR)ficheros_basico.o $(BUILD_DIR)ficheros.o $(BUILD_DIR)directorios.o
+INCLUDES=bloques.h ficheros_basico.h ficheros.h directorios.h
 PROGRAMS=mi_mkfs escribir leer leer_sf permitir truncar
 OBJECTS=$(SOURCES:.c=.o)
 
