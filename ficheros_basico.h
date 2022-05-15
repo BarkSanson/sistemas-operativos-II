@@ -14,7 +14,7 @@
 #define INDIRECTOS2 (NPUNTEROS * NPUNTEROS * NPUNTEROS + INDIRECTOS1) // 16.843.020
 
 #define DEBUG3 1
-#define DEBUG4 1
+#define DEBUG4 0
 #define DEBUG5 1
 #define DEBUG6 1
 

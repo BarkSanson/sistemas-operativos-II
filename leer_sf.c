@@ -10,6 +10,22 @@
 #define BLOQUE4 400004
 #define BLOQUE5 468750
 
+void mostar_buscar_entrada(char* camino, char reservar) {
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+    int error;
+
+    printf("\nCamino: %s, Reservar: %d\n", camino, reservar);
+
+    if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, reservar, 6)) < 0) {
+        mostrar_error_buscar_entrada(error);
+    }
+
+    printf("*********************************************************************************\n");
+    return;
+}
+
 void mostrar_inodo(struct inodo* inodo) {
     struct tm* ts;
     char atime[80];
@@ -64,13 +80,18 @@ int main(int argc, char **argv) {
     printf("totBloques = %d\n", SB.totBloques); 
     printf("totInodos = %d\n", SB.totInodos);
 
-    char inicial[100];
-    char final[100];
-    char tipo[100];
-    extraer_camino("/dir1/dir2/fichero", inicial, final, tipo);
-    extraer_camino("/dir/", inicial, final, tipo);
-    extraer_camino("/fichero", inicial, final, tipo);
-
+    mostar_buscar_entrada("pruebas/", 1);
+    mostar_buscar_entrada("/pruebas/", 0);
+    mostar_buscar_entrada("/pruebas/docs/", 1);
+    mostar_buscar_entrada("/pruebas/", 1);
+    mostar_buscar_entrada("/pruebas/docs/", 1);
+    mostar_buscar_entrada("/pruebas/docs/doc1", 1);
+    mostar_buscar_entrada("/pruebas/docs/doc1/doc11", 1);
+    mostar_buscar_entrada("/pruebas/", 1);
+    mostar_buscar_entrada("/pruebas/docs/doc1", 0);
+    mostar_buscar_entrada("/pruebas/docs/doc1", 1);
+    mostar_buscar_entrada("/pruebas/casos/", 1);
+    mostar_buscar_entrada("/pruebas/docs/doc2", 1);
     // printf("RESERVAMOS UN BLOQUE Y LUEGO LO LIBERAMOS\n");
     // bloqueReservado = reservar_bloque();
     // printf("Se ha reservado el bloque físico %d\n",bloqueReservado);
