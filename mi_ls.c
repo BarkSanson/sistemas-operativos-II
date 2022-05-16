@@ -1,7 +1,7 @@
 #include "directorios.h"
 
 int main(int argc, char** argv) {
-    char* buffer;
+    char buffer[TAMBUFFER];
     char* disco;
     char* camino;
 
@@ -12,7 +12,6 @@ int main(int argc, char** argv) {
 
     disco = argv[1];
     camino = argv[2];
-    buffer = malloc(strlen(camino));
 
     bmount(disco);
 

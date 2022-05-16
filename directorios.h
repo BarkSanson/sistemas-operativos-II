@@ -12,6 +12,9 @@
 #define ERROR_ENTRADA_YA_EXISTENTE -7
 #define ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO -8
 
+#define TAMFILA 100
+#define TAMBUFFER (TAMFILA*1000)
+
 struct entrada{
     char nombre[TAMNOMBRE];
     unsigned int ninodo;

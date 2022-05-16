@@ -1,3 +1,4 @@
+
 #include "directorios.h"
 
 int main(int argc, char** argv) {
@@ -30,7 +31,7 @@ int main(int argc, char** argv) {
 
     bmount(disco);
 
-    mi_creat(camino, permisos);
+    mi_chmod(camino, permisos);
 
     bumount();
 

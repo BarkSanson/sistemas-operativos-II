@@ -294,7 +294,7 @@ int mi_dir(const char* camino, char* buffer) {
         }
 
         strcat(buffer, entrada.nombre);
-        strcat(buffer, "\t");
+        strcat(buffer, "\n");
 
         num_entrada++;
     }
