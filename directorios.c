@@ -42,6 +42,15 @@ int extraer_camino(const char *camino,char *inicial,char *final,char *tipo){
     return ERROR_EXIT; 
 }
 
+/**
+ * Función auxiliar para mostrar los mensajes de
+ * error en función del código de error devuelto
+ * por buscar_entrada()
+ * 
+ * @param error Código de error
+ * 
+ * @returns void
+ */
 void mostrar_error_buscar_entrada(int error) {
     switch(error) {
         case ERROR_CAMINO_INCORRECTO:
@@ -67,6 +76,23 @@ void mostrar_error_buscar_entrada(int error) {
     }
 }
 
+/**
+ * Busca una entrada determinada dentro de
+ * los inodos. 
+ * 
+ * @param   camino_parcial  Cadena de caracteres que indica el camino
+ * @param   p_inodo_dir     Número del inodo padre donde buscar la entrada
+ * @param   p_inodo         Número del inodo hijo final
+ * @param   p_entrada       Número de la entrada del directorio padre
+ * @param   reservar        Bit para reservar, o no, una entrada de directorio,
+ *                          si no existe
+ * @param   permisos        Si se reserva un inodo, estos son los permisos que se 
+ *                          le darán
+ * 
+ * @returns SUCCESS_EXIT si todo ha ido bien, 
+ *          uno de los códigos de error (ver directorios.h)
+ *          de lo contrario
+ */
 int buscar_entrada(
     const char* camino_parcial, 
     unsigned int* p_inodo_dir,
@@ -98,7 +124,7 @@ int buscar_entrada(
     if(strcmp(camino_parcial, "/") == 0) {
         *p_inodo = SB.posInodoRaiz;
         *p_entrada = 0;
-        return 0;
+        return SUCCESS_EXIT;
     }
 
     if(extraer_camino(camino_parcial, inicial, final, &tipo) == ERROR_EXIT) {
