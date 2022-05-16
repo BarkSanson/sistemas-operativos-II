@@ -236,3 +236,102 @@ int buscar_entrada(
 
     return SUCCESS_EXIT;
 }
+
+int mi_creat(const char* camino, unsigned char permisos) {
+    unsigned int p_inodo;
+    unsigned int p_entrada;
+    unsigned int p_inodo_dir = 0;
+    int error;
+
+    if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos)) < 0) {
+        mostrar_error_buscar_entrada(error);
+        return ERROR_EXIT;
+    }
+
+    return SUCCESS_EXIT;
+}
+
+int mi_dir(const char* camino, char* buffer) {
+    struct entrada entrada;
+    unsigned int num_entrada;
+    struct inodo inodo;
+    unsigned int p_inodo;
+    unsigned int p_entrada;
+    unsigned int p_inodo_dir = 0;
+    int error;
+
+    if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0) {
+        mostrar_error_buscar_entrada(error);
+        return ERROR_EXIT;
+    }
+
+    if(leer_inodo(p_inodo, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_dir()]: no se ha podido leer el inodo %d\n", p_entrada);
+        return ERROR_EXIT;
+    }
+
+    if(inodo.tipo != 'd') {
+        fprintf(stderr, "[Error en mi_dir()]: el inodo no es un directorio\n");
+        return ERROR_EXIT;
+    }
+
+    if((inodo.permisos & 2) != 2) {
+        fprintf(stderr, "[Error en mi_dir()]: el inodo no tiene permisos de lectura\n");
+        return ERROR_EXIT;
+    }
+
+    num_entrada = 0;
+    while(num_entrada < (inodo.tamEnBytesLog/sizeof(struct entrada))) {
+        if(mi_read_f(
+            p_entrada, 
+            &entrada, 
+            num_entrada * sizeof(struct entrada), 
+            sizeof(struct entrada)) == ERROR_EXIT) {
+                fprintf(stderr, "[Error en mi_dir()]: no se ha podido leer la entrada %d del inodo %d\n", 
+                num_entrada, 
+                p_inodo);
+                return ERROR_EXIT;
+        }
+
+        strcat(buffer, entrada.nombre);
+        strcat(buffer, "\t");
+
+        num_entrada++;
+    }
+
+    return num_entrada + 1;
+}
+
+int mi_chmod(const char* camino, unsigned char permisos) {
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo;
+    unsigned int p_entrada;
+    int error;
+
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos);
+    if(error < 0) {
+        mostrar_error_buscar_entrada(error);
+        return ERROR_EXIT;
+    }
+
+    mi_chmod_f(p_inodo, permisos);
+
+    return SUCCESS_EXIT;
+}
+
+int mi_stat(const char* camino, struct STAT* p_stat) {
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo;
+    unsigned int p_entrada;
+    int error;
+
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
+    if(error < 0) {
+        mostrar_error_buscar_entrada(error);
+        return ERROR_EXIT;
+    }
+
+    mi_stat_f(p_inodo, p_stat);
+
+    return SUCCESS_EXIT;
+}
