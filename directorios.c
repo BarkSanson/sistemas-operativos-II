@@ -104,11 +104,11 @@ int buscar_entrada(
     struct superbloque SB;
     struct entrada entrada;
     struct inodo inodo_dir;
-    struct entrada buffer[BLOCKSIZE/sizeof(struct entrada)];
     char inicial[sizeof(entrada.nombre)];
     char final[strlen(camino_parcial)];
     char tipo;
-    int cant_entradas_inodo, num_entrada_inodo;
+    int cant_entradas_inodo, 
+    num_entrada_inodo;
 
     // Limpiamos todos los arrays, porque así
     // no hay errores a la hora de comparalos
@@ -148,27 +148,21 @@ int buscar_entrada(
         return ERROR_PERMISO_LECTURA;
     }
 
-    memset(buffer, 0, (BLOCKSIZE / sizeof(struct entrada)) * sizeof(struct entrada));
-
     // Calculamos la cantidad de entradas que contiene el inodo
     cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
     num_entrada_inodo = 0;
 
     if(cant_entradas_inodo > 0) {
         if(mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
-            fprintf(stderr, "[Error en buscar_entrada()]: no se han podido leer las entradas\n");
+            fprintf(stderr, "[Error en buscar_entrada()]: no se han podido leer la entrada %d del inodo %d\n", num_entrada_inodo, *p_inodo_dir);
             return ERROR_EXIT;
         }
 
-        // POSIBLE MEJORA
-        // for(int i = 0; i < BLOCKSIZE/sizeof(entrada); i++) {
-
-        // }
         while((num_entrada_inodo < cant_entradas_inodo) && strcmp(inicial, entrada.nombre) != 0) {
             num_entrada_inodo++;
 
             if(mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
-                fprintf(stderr, "[Error en buscar_entrada()]: no se han podido leer las entradas\n");
+                fprintf(stderr, "[Error en buscar_entrada()]: no se han podido leer la entrada %d del inodo %d\n", num_entrada_inodo, *p_inodo_dir);
                 return ERROR_EXIT;
             }
         }
@@ -208,7 +202,7 @@ int buscar_entrada(
                     fprintf(stderr, "[buscar_entrada() -> creada entrada %s con ninodo %d\n", inicial, entrada.ninodo);
                 #endif
 
-                if(mi_write_f(*p_inodo_dir, &entrada, inodo_dir.tamEnBytesLog, sizeof(struct entrada)) == ERROR_EXIT) {
+                if(mi_write_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
                     fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido escribir la entrada en el inodo %d\n", *p_inodo_dir);
                     if(entrada.ninodo != -1) {
                         liberar_inodo(entrada.ninodo);
@@ -252,12 +246,14 @@ int mi_creat(const char* camino, unsigned char permisos) {
 }
 
 int mi_dir(const char* camino, char* buffer) {
-    struct entrada entrada;
-    unsigned int num_entrada;
     struct inodo inodo;
+    struct entrada entrada;
     unsigned int p_inodo;
     unsigned int p_entrada;
     unsigned int p_inodo_dir = 0;
+    unsigned int totEntradasBloque;
+    unsigned int totEntradasInodo;
+    int offset;
     int error;
 
     if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0) {
@@ -280,26 +276,63 @@ int mi_dir(const char* camino, char* buffer) {
         return ERROR_EXIT;
     }
 
-    num_entrada = 0;
-    while(num_entrada < (inodo.tamEnBytesLog/sizeof(struct entrada))) {
-        if(mi_read_f(
-            p_entrada, 
-            &entrada, 
-            num_entrada * sizeof(struct entrada), 
-            sizeof(struct entrada)) == ERROR_EXIT) {
-                fprintf(stderr, "[Error en mi_dir()]: no se ha podido leer la entrada %d del inodo %d\n", 
-                num_entrada, 
-                p_inodo);
-                return ERROR_EXIT;
-        }
 
-        strcat(buffer, entrada.nombre);
+    totEntradasBloque = BLOCKSIZE / sizeof(struct entrada);
+    totEntradasInodo = inodo.tamEnBytesLog / sizeof(struct entrada);
+
+    // Utilizamos un buffer para no tener que
+    // leer entrada a entrada
+    struct entrada entradas[totEntradasBloque];
+    memset(entradas, 0, totEntradasBloque);
+
+    offset = 0;
+    offset = mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+
+    for(int i = 0; i < totEntradasInodo; i++) {
+        // if(leer_inodo(entradas[i % totEntradasBloque].ninodo, &inodo) == ERROR_EXIT) {
+        //     fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido leer el bloque de entradas %d",
+        //     i % totEntradasBloque);
+        //     return ERROR_EXIT;
+        // }
+
+        // Vamos creando el buffer, primero con
+        // el nombre de la entrada
+        strcat(buffer, entradas[i % totEntradasBloque].nombre);
+        strcat(buffer, "\t");
+
+        // // A continuación, el tipo
+        // strcat(buffer, inodo.tipo == 'd' ? "d" : "f");
+        // strcat(buffer, "\t");
+
+        // // Luego los permisos 
+        // strcat(buffer, (inodo.permisos & 4) == 4 ? "r" : "-");
+        // strcat(buffer, (inodo.permisos & 2) == 2 ? "w" : "-");
+        // strcat(buffer, (inodo.permisos & 1) == 1 ? "x" : "-");
+        // strcat(buffer, "\t\t");
+
+        // // Y el mtime
+        // struct tm* tm;
+        // char tmp[80];
+
+        // tm = localtime(&inodo.mtime);
+        // sprintf(
+        //     tmp, 
+        //     "%d-%02d-%02d %02d:%02d:%02d", 
+        //     tm->tm_year + 1900, 
+        //     tm->tm_mon + 1, 
+        //     tm->tm_mday, 
+        //     tm->tm_hour, 
+        //     tm->tm_min, 
+        //     tm->tm_sec);
+        // strcat(buffer, tmp);
+
         strcat(buffer, "\n");
-
-        num_entrada++;
+        
+        if((offset % totEntradasBloque) == 0) 
+            offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
     }
 
-    return num_entrada + 1;
+    return totEntradasInodo;
 }
 
 int mi_chmod(const char* camino, unsigned char permisos) {

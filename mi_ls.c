@@ -15,12 +15,15 @@ int main(int argc, char** argv) {
 
     bmount(disco);
 
-    mi_dir(camino, buffer);
+    if(mi_dir(camino, buffer) == ERROR_EXIT) {
+        return 1;
+    }
 
-    write(1, buffer, strlen(buffer));
+    printf("Nombre\tTipo\tPermisos\tmtime\n");
+    printf("------------------------------------------------------\n");
+    printf(buffer);
 
     bumount();
 
-    free(buffer);
     return 0;
 }
