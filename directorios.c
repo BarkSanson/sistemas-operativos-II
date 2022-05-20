@@ -250,7 +250,6 @@ int mi_creat(const char* camino, unsigned char permisos) {
 
 int mi_dir(const char* camino, char* buffer) {
     struct inodo inodo;
-    struct entrada entrada;
     unsigned int p_inodo;
     unsigned int p_entrada;
     unsigned int p_inodo_dir = 0;
@@ -370,5 +369,5 @@ int mi_stat(const char* camino, struct STAT* p_stat) {
 
     mi_stat_f(p_inodo, p_stat);
 
-    return SUCCESS_EXIT;
+    return p_inodo;
 }

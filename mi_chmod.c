@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
     char permisos = -1;
 
     if(argc != 4) {
-        fprintf(stderr, "mi_ls: Sintaxis incorrecta, la sintaxis debe seguir la siguiente forma:\n\t ./mi_mkdir <disco> <permisos> <ruta>\n");
+        fprintf(stderr, "mi_chmod: Sintaxis incorrecta, la sintaxis debe seguir la siguiente forma:\n\t ./mi_chmod <disco> <permisos> <ruta>\n");
         return 1;
     }
 
@@ -18,14 +18,14 @@ int main(int argc, char** argv) {
     // Si permisos sigue siendo -1, es porque
     // atoi no ha podido realizar la conversion
     if(permisos == -1) {
-        fprintf(stderr, "mi_ls: los permisos introducidos no son válidos.\n");
+        fprintf(stderr, "mi_chmod: los permisos introducidos no son válidos.\n");
         return 1;
     }
 
     permisos++;
 
     if(permisos < 0 || permisos > 7) {
-        fprintf(stderr, "mi_ls: los permisos deben estar entre 0 y 7\n");
+        fprintf(stderr, "mi_chmod: los permisos deben estar entre 0 y 7\n");
         return 1;
     }
 
