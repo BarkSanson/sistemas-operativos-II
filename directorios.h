@@ -2,7 +2,7 @@
 
 #define TAMNOMBRE 60
 
-#define DEBUG7 1
+#define DEBUG7 0
 
 #define ERROR_CAMINO_INCORRECTO -2
 #define ERROR_PERMISO_LECTURA -3
@@ -38,3 +38,13 @@ int mi_creat(const char* camino, unsigned char permisos);
 int mi_dir(const char* camino, char* buffer);
 int mi_chmod(const char* camino, unsigned char permisos);
 int mi_stat(const char* camino, struct STAT* p_stat);
+int mi_write(
+    const char* camino, 
+    const void* buff, 
+    unsigned int offset, 
+    unsigned int nbytes);
+int mi_read(
+    const char* camino, 
+    void* buff, 
+    unsigned int offset, 
+    unsigned int nbytes);

@@ -248,6 +248,18 @@ int mi_creat(const char* camino, unsigned char permisos) {
     return SUCCESS_EXIT;
 }
 
+/**
+ * Muestra información sobre un directorio o
+ * fichero determinado
+ * 
+ * @param   camino  Camino del directorio o fichero
+ * @param   buffer  Buffer donde se introducirá la información
+ *                  del fichero/directorio
+ * 
+ * @returns ERROR_EXIT si algo ha ido mal,
+ *          el número total de entradas que tiene 
+ *          el inodo de lo contrario
+ */
 int mi_dir(const char* camino, char* buffer) {
     struct inodo inodo;
     unsigned int p_inodo;
@@ -338,6 +350,15 @@ int mi_dir(const char* camino, char* buffer) {
     return totEntradasInodo;
 }
 
+/**
+ * Cambia los permisos de un fichero/directorio
+ * 
+ * @param   camino      Camino del directorio o fichero
+ * @param   permisos    Nuevos permisos a poner en el fichero
+ * 
+ * @returns SUCCESS_EXIT si todo ha salido bien,
+ *          ERROR_EXIT de lo contrario
+ */
 int mi_chmod(const char* camino, unsigned char permisos) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo;
@@ -355,6 +376,14 @@ int mi_chmod(const char* camino, unsigned char permisos) {
     return SUCCESS_EXIT;
 }
 
+/**
+ * Deja en una estructura de tipo STAT
+ * los datos sobre un inodo
+ * 
+ * @param   camino  Camino del directorio o fichero
+ * @param   p_stat  STAT donde volcar los datos del inodo
+ * 
+ */
 int mi_stat(const char* camino, struct STAT* p_stat) {
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo;
@@ -370,4 +399,74 @@ int mi_stat(const char* camino, struct STAT* p_stat) {
     mi_stat_f(p_inodo, p_stat);
 
     return p_inodo;
+}
+
+int mi_write(
+    const char* camino, 
+    const void* buff, 
+    unsigned int offset, 
+    unsigned int nbytes) {
+
+    unsigned int p_inodo;
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_entrada;
+    int error;
+    int bytesEscritos;
+
+    // Si el camino termina con /, se trata
+    // de un directorio, no de un fichero
+    if(*(camino + strlen(camino) - 1) == '/') {
+        fprintf(stderr, "[Error en mi_write()]: el camino introducido no es de un fichero");
+        return ERROR_EXIT;
+    }
+
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6);
+
+    if(p_inodo < 0) {
+        mostrar_error_buscar_entrada(error);
+        return ERROR_EXIT;
+    }
+
+    bytesEscritos = mi_write_f(p_inodo, buff, offset, nbytes);
+    if(bytesEscritos == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_write()]: no se ha podido escribir en el inodo %d", p_inodo);
+        return ERROR_EXIT;
+    }
+
+    return bytesEscritos;
+}
+
+int mi_read(
+    const char* camino, 
+    void* buff, 
+    unsigned int offset, 
+    unsigned int nbytes) {
+
+    unsigned int p_inodo;
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_entrada;
+    int error;
+    int bytesLeidos;
+
+    // Si el camino termina con /, se trata
+    // de un directorio, no de un fichero
+    if(*(camino + strlen(camino) - 1) == '/') {
+        fprintf(stderr, "[Error en mi_read()]: el camino introducido no es de un fichero");
+        return ERROR_EXIT;
+    }
+
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6);
+
+    if(p_inodo < 0) {
+        mostrar_error_buscar_entrada(error);
+        return ERROR_EXIT;
+    }
+
+    bytesLeidos = mi_read_f(p_inodo, buff, offset, nbytes);
+    if(bytesLeidos == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_read()]: no se ha podido leer el inodo %d", p_inodo);
+        return ERROR_EXIT;
+    }
+
+    return bytesLeidos;
 }
