@@ -6,7 +6,7 @@ int main(int argc, char** argv) {
     char permisos = -1;
 
     if(argc != 4) {
-        fprintf(stderr, "mi_mkdir: Sintaxis incorrecta, la sintaxis debe seguir la siguiente forma:\n\t ./mi_mkdir <disco> <permisos> <ruta>\n");
+        fprintf(stderr, "mi_touch: Sintaxis incorrecta, la sintaxis debe seguir la siguiente forma:\n\t ./mi_touch <disco> <permisos> <ruta>\n");
         return 1;
     }
 
@@ -17,21 +17,21 @@ int main(int argc, char** argv) {
     // Si permisos sigue siendo -1, es porque
     // atoi no ha podido realizar la conversion
     if(permisos == -1) {
-        fprintf(stderr, "mi_mkdir: los permisos introducidos no son válidos.\n");
+        fprintf(stderr, "mi_touch: los permisos introducidos no son válidos.\n");
         return 1;
     }
 
     permisos++;
 
     if(permisos < 0 || permisos > 7) {
-        fprintf(stderr, "mi_mkdir: los permisos deben estar entre 0 y 7\n");
+        fprintf(stderr, "mi_touch: los permisos deben estar entre 0 y 7\n");
         return 1;
     }
 
-    // Si el camino no tiene / al final,
-    // no es un directorio.
-    if(*(camino + strlen(camino) - 1) != '/') {
-        fprintf(stderr, "mi_mkdir: el camino introducido no es un directorio");
+    // Si el camino tiene / al final,
+    // no es un fichero
+    if(*(camino + strlen(camino) - 1) == '/') {
+        fprintf(stderr, "mi_touch: el camino introducido no es un fichero");
         return 1;
     }
     bmount(disco);
