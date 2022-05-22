@@ -387,6 +387,8 @@ int mi_dir(const char* camino, char* buffer, char tipo) {
             return ERROR_EXIT;
         }
 
+        if((inodo.permisos & 1) == 1) strcat(buffer, BOLD_GREEN);
+
         // Vamos creando el buffer, primero con
         // el nombre de la entrada
         strcat(buffer, entrada.nombre);
@@ -555,3 +557,76 @@ int mi_read(
 
     return bytesLeidos;
 }
+
+int mi_link(const char* camino1, const char* camino2) {
+    struct inodo inodo;
+    struct entrada entrada;
+    int error;
+    unsigned int p_inodo_dir1, p_inodo_dir2 = 0;
+    unsigned int p_inodo1, p_inodo2;
+    unsigned int p_entrada1, p_entrada2;
+
+    if(error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4) < 0) {
+        mostrar_error_buscar_entrada(error);
+        return ERROR_EXIT;
+    }
+
+    if(leer_inodo(p_inodo1, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, "[Error en mi_link()]: no se ha podido leer el inodo %d\n", p_inodo1);
+        return ERROR_EXIT;
+    }
+
+    if((inodo.permisos & 4) != 4) {
+        fprintf(stderr, "[Error en mi_link()]: el inodo no tiene permisos de lectura\n");
+        return ERROR_EXIT; 
+    }
+
+    if(error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6) < 0) {
+        mostrar_error_buscar_entrada(error);
+        return ERROR_EXIT;
+    }
+
+    if(mi_read_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
+        fprintf(stderr, 
+        "[Error en mi_link()]: no se ha podido leer la entrada %d del inodo %d\n",
+        p_entrada2,
+        p_inodo_dir2);
+        return ERROR_EXIT; 
+    }
+
+    // Actualizamos el inodo al que apunta
+    // la entrada y lo escribimos
+    entrada.ninodo = p_inodo1;
+    if(mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
+        fprintf(stderr, 
+        "[Error en mi_link()]: no se ha podido escribir la entrada %d del inodo %d\n",
+        p_entrada2,
+        p_inodo_dir2);
+        return ERROR_EXIT; 
+    }
+
+    // El nuevo inodo creado para camino2 no es 
+    // necesario, por tanto lo liberamos
+    if(liberar_inodo(p_inodo2) == ERROR_EXIT) {
+        fprintf(stderr, 
+        "[Error en mi_link()]: no se ha podido liberar el inodo %d\n",
+        p_inodo2);
+        return ERROR_EXIT; 
+    }
+
+    // Se trata de un enlace, por tanto 
+    // aumentamos el número de enlaces
+    // del inodo del camino1
+    inodo.nlinks++;
+    inodo.ctime = time(NULL);
+
+    if(escribir_inodo(p_inodo1, &inodo) == ERROR_EXIT) {
+        fprintf(stderr, 
+        "[Error en mi_link()]: no se ha podido escribir el inodo %d\n",
+        p_inodo1);
+        return ERROR_EXIT; 
+    }
+
+    return SUCCESS_EXIT;
+}
+

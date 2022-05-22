@@ -749,7 +749,7 @@ int liberar_inodo(unsigned int ninodo){
         #if DEBUG
             fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
         #endif
-    return ERROR_EXIT;
+        return ERROR_EXIT;
     }
     //liberamos los bloques a los que apunta el inodo
     bloquesLiberados = liberar_bloques_inodo(0,&inodo);

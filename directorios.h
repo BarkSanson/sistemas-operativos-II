@@ -50,3 +50,5 @@ int mi_read(
     void* buff, 
     unsigned int offset, 
     unsigned int nbytes);
+int mi_link(const char* camino1, const char* camino2);
+int mi_unlink(const char* camino);
