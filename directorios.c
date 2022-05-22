@@ -260,8 +260,9 @@ int mi_creat(const char* camino, unsigned char permisos) {
  *          el número total de entradas que tiene 
  *          el inodo de lo contrario
  */
-int mi_dir(const char* camino, char* buffer) {
+int mi_dir(const char* camino, char* buffer, char tipo) {
     struct inodo inodo;
+    struct entrada entrada;
     unsigned int p_inodo;
     unsigned int p_entrada;
     unsigned int p_inodo_dir = 0;
@@ -280,43 +281,120 @@ int mi_dir(const char* camino, char* buffer) {
         return ERROR_EXIT;
     }
 
-    if(inodo.tipo != 'd') {
-        fprintf(stderr, "[Error en mi_dir()]: el inodo no es un directorio\n");
-        return ERROR_EXIT;
-    }
-
-    if((inodo.permisos & 2) != 2) {
+    if((inodo.permisos & 4) != 4) {
         fprintf(stderr, "[Error en mi_dir()]: el inodo no tiene permisos de lectura\n");
         return ERROR_EXIT;
     }
 
+    if(inodo.tipo != tipo) {
+        fprintf(stderr, "[Error en mi_dir()]: la sintaxis no concuerda con el tipo");
+        return ERROR_EXIT;
+    }
 
     totEntradasBloque = BLOCKSIZE / sizeof(struct entrada);
     totEntradasInodo = inodo.tamEnBytesLog / sizeof(struct entrada);
 
-    // Utilizamos un buffer para no tener que
-    // leer entrada a entrada
-    struct entrada entradas[totEntradasBloque];
-    memset(entradas, 0, totEntradasBloque);
+    // Si el inodo es un directorio, mostramos sus
+    // entradas
+    if(inodo.tipo == 'd') {
 
-    offset = 0;
-    offset = mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+        // Utilizamos un buffer para no tener que
+        // leer entrada a entrada
+        struct entrada entradas[totEntradasBloque];
+        memset(entradas, 0, totEntradasBloque);
 
-    for(int i = 0; i < totEntradasInodo; i++) {
-        // Leemos el inodo correspondiente a cada entrada
-        if(leer_inodo(entradas[i % totEntradasBloque].ninodo, &inodo) == ERROR_EXIT) {
-            fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido leer el bloque de entradas %d",
-            i % totEntradasBloque);
+        offset = 0;
+        offset = mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+
+        for(int i = 0; i < totEntradasInodo; i++) {
+            // Leemos el inodo correspondiente a cada entrada
+            if(leer_inodo(entradas[i % totEntradasBloque].ninodo, &inodo) == ERROR_EXIT) {
+                fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido leer el bloque de entradas %d",
+                i % totEntradasBloque);
+                return ERROR_EXIT;
+            }
+
+            // Si el inodo es de un directorio,
+            // lo mostramos en azul
+            if(inodo.tipo == 'd') strcat(buffer, DIRECTORY_COLOR);
+            // Si es un fichero ejecutable, lo mostramos
+            // en verde y en negrita
+            else if((inodo.permisos & 1) == 1) strcat(buffer, BOLD_GREEN);
+
+            
+            // Vamos creando el buffer, primero con
+            // el nombre de la entrada
+            strcat(buffer, entradas[i % totEntradasBloque].nombre);
+            strcat(buffer, "\t");
+
+            strcat(buffer, RESET_COLOR);
+
+            // // A continuación, el tipo
+            strcat(buffer, inodo.tipo == 'd' ? "d" : "f");
+            strcat(buffer, "\t");
+
+            // Luego los permisos 
+            strcat(buffer, (inodo.permisos & 4) == 4 ? "r" : "-");
+            strcat(buffer, (inodo.permisos & 2) == 2 ? "w" : "-");
+            strcat(buffer, (inodo.permisos & 1) == 1 ? "x" : "-");
+            strcat(buffer, "\t\t");
+
+            // Utilizamos otro buffer auxiliar para
+            // poder concatenar el tamanyo del inodo
+            char stringTamanyo[sizeof(inodo.tamEnBytesLog)];
+            sprintf(stringTamanyo, "%d", inodo.tamEnBytesLog);
+
+            strcat(buffer, stringTamanyo);
+            strcat(buffer, "\t");
+
+            // Y el mtime
+            struct tm* tm;
+            char tmp[80];
+
+            tm = localtime(&inodo.mtime);
+            sprintf(
+                tmp, 
+                "%d-%02d-%02d %02d:%02d:%02d", 
+                tm->tm_year + 1900, 
+                tm->tm_mon + 1, 
+                tm->tm_mday, 
+                tm->tm_hour, 
+                tm->tm_min, 
+                tm->tm_sec);
+            strcat(buffer, tmp);
+
+            strcat(buffer, "\n");
+            
+            if((offset % totEntradasBloque) == 0) 
+                offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+        }
+
+        return totEntradasInodo;
+
+    // Si el inodo es de un fichero, mostramos
+    // únicamente el inodo
+    } else if(inodo.tipo == 'f') {
+        if(mi_read_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
+            fprintf(stderr, 
+            "[Error en mi_dir()]: no se ha podido leer la entrada %d del inodo %d",
+            p_entrada,
+            p_inodo);
+        }
+
+        if(leer_inodo(entrada.ninodo, &inodo) == ERROR_EXIT) {
+            fprintf(stderr, "[Error en mi_dir()]: no se ha podido leer el inodo de la entrada %d",
+            p_entrada);
             return ERROR_EXIT;
         }
 
         // Vamos creando el buffer, primero con
         // el nombre de la entrada
-        strcat(buffer, entradas[i % totEntradasBloque].nombre);
+        strcat(buffer, entrada.nombre);
         strcat(buffer, "\t");
 
+        strcat(buffer, RESET_COLOR);
+
         // // A continuación, el tipo
-        strcat(buffer, inodo.tipo == 'd' ? "d" : "f");
         strcat(buffer, "\t");
 
         // Luego los permisos 
@@ -350,12 +428,11 @@ int mi_dir(const char* camino, char* buffer) {
         strcat(buffer, tmp);
 
         strcat(buffer, "\n");
-        
-        if((offset % totEntradasBloque) == 0) 
-            offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+
+        return SUCCESS_EXIT;
     }
 
-    return totEntradasInodo;
+    return ERROR_EXIT;
 }
 
 /**

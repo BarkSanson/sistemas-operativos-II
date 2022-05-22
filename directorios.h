@@ -15,6 +15,8 @@
 #define TAMFILA 100
 #define TAMBUFFER (TAMFILA*1000)
 
+#define DIRECTORY_COLOR "\033[1;34m"
+
 struct entrada{
     char nombre[TAMNOMBRE];
     unsigned int ninodo;
@@ -35,7 +37,7 @@ int buscar_entrada(
     unsigned char permisos);
 
 int mi_creat(const char* camino, unsigned char permisos);
-int mi_dir(const char* camino, char* buffer);
+int mi_dir(const char* camino, char* buffer, char tipo);
 int mi_chmod(const char* camino, unsigned char permisos);
 int mi_stat(const char* camino, struct STAT* p_stat);
 int mi_write(

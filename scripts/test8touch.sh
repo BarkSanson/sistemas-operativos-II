@@ -42,8 +42,8 @@ echo "##########################################################################
 echo "$ ./mi_chmod disco 6 /dir1/dir11/   #permiso lectura/escritura"
 ./mi_chmod disco 6 /dir1/dir11/   
 echo "################################################################################"
-echo "$ ./mi_touch disco 6 /dir1/dir11/fic111   #permiso lectura/escritura"
-./mi_touch disco 6 /dir1/dir11/fic111  
+echo "$ ./mi_touch disco 7 /dir1/dir11/fic111   #permiso lectura/escritura/ejecución"
+./mi_touch disco 7 /dir1/dir11/fic111  
 echo "################################################################################"
 echo "$ ./mi_touch disco 6 /dir1/dir11/fic112   #permiso lectura/escritura"
 ./mi_touch disco 6 /dir1/dir11/fic112  

@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 
     bmount(disco);
 
-    if(mi_dir(camino, buffer) == ERROR_EXIT) {
+    if(mi_dir(camino, buffer, *(camino + strlen(camino) - 1) == '/' ? 'd' : 'f') == ERROR_EXIT) {
         return 1;
     }
 
