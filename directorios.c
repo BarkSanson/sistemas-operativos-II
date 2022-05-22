@@ -325,6 +325,14 @@ int mi_dir(const char* camino, char* buffer) {
         strcat(buffer, (inodo.permisos & 1) == 1 ? "x" : "-");
         strcat(buffer, "\t\t");
 
+        // Utilizamos otro buffer auxiliar para
+        // poder concatenar el tamanyo del inodo
+        char stringTamanyo[sizeof(inodo.tamEnBytesLog)];
+        sprintf(stringTamanyo, "%d", inodo.tamEnBytesLog);
+
+        strcat(buffer, stringTamanyo);
+        strcat(buffer, "\t");
+
         // Y el mtime
         struct tm* tm;
         char tmp[80];

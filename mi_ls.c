@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    printf("Nombre\tTipo\tPermisos\tmtime\n");
+    printf("Nombre\tTipo\tPermisos\tTamaño\tmtime\n");
     printf("------------------------------------------------------\n");
     printf(buffer);
 
