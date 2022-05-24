@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
         bytesLeidosIter = mi_read(ruta, buffer, offset, TAM_BUFFER);
     }
 
-    printf("\nBytes leidos: %d\n", bytesTotalesLeidos);
+    fprintf(stderr, "\nBytes leidos: %d\n", bytesTotalesLeidos);
 
     bumount();
 

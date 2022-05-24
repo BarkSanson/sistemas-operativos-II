@@ -7,17 +7,17 @@ int main(int argc, char** argv) {
     if(argc != 3) {
         fprintf(
             stderr, 
-            "mi_rm: sintaxis incorrecta, la sintaxis debe seguir la siguiente forma:\n\t ./mi_rm <disco> <ruta>\n");
+            "mi_rmdir: sintaxis incorrecta, la sintaxis debe seguir la siguiente forma:\n\t ./mi_rm <disco> <ruta_directorio>\n");
         return 1;
     }
 
     disco = argv[1];
     ruta = argv[2];
 
-    if(*(ruta + strlen(ruta) - 1) == '/') {
+    if(*(ruta + strlen(ruta) - 1) != '/') {
         fprintf(
             stderr, 
-            "mi_rm: la ruta introducida no pertenece a un fichero\n");
+            "mi_rmdir: la ruta introducida no pertenece a un directorio\n");
         return 1;
     }
 
@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     if(mi_unlink(ruta) == ERROR_EXIT) {
         fprintf(
             stderr, 
-            "mi_rm: no se ha podido eliminar el fichero/directorio correctamente\n");
+            "mi_rmdir: no se ha podido eliminar el directorio correctamente\n");
         return 1;
     }
 
