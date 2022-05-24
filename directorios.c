@@ -566,7 +566,7 @@ int mi_link(const char* camino1, const char* camino2) {
     unsigned int p_inodo1, p_inodo2;
     unsigned int p_entrada1, p_entrada2;
 
-    if(error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4) < 0) {
+    if((error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4)) < 0) {
         mostrar_error_buscar_entrada(error);
         return ERROR_EXIT;
     }
@@ -581,7 +581,7 @@ int mi_link(const char* camino1, const char* camino2) {
         return ERROR_EXIT; 
     }
 
-    if(error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6) < 0) {
+    if((error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6)) < 0) {
         mostrar_error_buscar_entrada(error);
         return ERROR_EXIT;
     }
@@ -639,25 +639,25 @@ int mi_unlink(const char* camino) {
     unsigned int num_entradas_dir;
     int error;
 
-    if(error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6) < 0) {
+    if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6)) < 0) {
         mostrar_error_buscar_entrada(error);
         return ERROR_EXIT;
     }
 
     if(leer_inodo(p_inodo, &inodo) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en mi_unlink()]: no se ha podido leer el inodo %d", p_inodo);
+        fprintf(stderr, "[Error en mi_unlink()]: no se ha podido leer el inodo %d\n", p_inodo);
         return ERROR_EXIT;
     }
 
     if(inodo.tipo == 'd' && inodo.tamEnBytesLog > 0) {
-        fprintf(stderr, "[Error en mi_unlink()]: no se puede eliminar un directorio que no esté vacío");
+        fprintf(stderr, "[Error en mi_unlink()]: no se puede eliminar un directorio que no esté vacío\n");
         return ERROR_EXIT;
     }
 
     if(leer_inodo(p_inodo_dir, &inodo) == ERROR_EXIT) {
         fprintf(
             stderr, 
-            "[Error en mi_unlink()]: no se ha podido leer el inodo %d, padre de %d", 
+            "[Error en mi_unlink()]: no se ha podido leer el inodo %d, padre de %d\n", 
             p_inodo_dir, 
             p_inodo);
         return ERROR_EXIT;
@@ -669,7 +669,7 @@ int mi_unlink(const char* camino) {
 
         // Leemos la última entrada
         if(mi_read_f(p_inodo_dir, &entrada, (num_entradas_dir - 1) * sizeof(struct entrada), sizeof(entrada)) == ERROR_EXIT) {
-            fprintf(stderr, "[Error en mi_unlink()]: no se ha podido leer la entrada %d", num_entradas_dir - 1);
+            fprintf(stderr, "[Error en mi_unlink()]: no se ha podido leer la entrada %d\n", num_entradas_dir - 1);
             return ERROR_EXIT;
         }
 
@@ -678,7 +678,7 @@ int mi_unlink(const char* camino) {
         if(mi_write_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(entrada)) == ERROR_EXIT) {
             fprintf(
                 stderr, 
-                "[Error en mi_unlink()]: no se ha escribir la entrada %d en la posición de p_entrada %d", 
+                "[Error en mi_unlink()]: no se ha escribir la entrada %d en la posición de p_entrada %d\n", 
                 num_entradas_dir,
                 p_entrada);
             return ERROR_EXIT;
@@ -690,7 +690,7 @@ int mi_unlink(const char* camino) {
     if(mi_truncar_f(p_inodo_dir, inodo.tamEnBytesLog - sizeof(struct entrada)) == ERROR_EXIT) {
         fprintf(
             stderr, 
-            "[Error en mi_unlink()]: no se ha podido truncar el inodo %d", 
+            "[Error en mi_unlink()]: no se ha podido truncar el inodo %d\n", 
             p_inodo_dir);
         return ERROR_EXIT;
     }
@@ -698,7 +698,7 @@ int mi_unlink(const char* camino) {
     if(leer_inodo(p_inodo, &inodo) == ERROR_EXIT) {
         fprintf(
             stderr, 
-            "[Error en mi_unlink()]: no se ha podido leer el inodo %d de la entrada %d", 
+            "[Error en mi_unlink()]: no se ha podido leer el inodo %d de la entrada %d\n", 
             p_inodo,
             p_entrada);
         return ERROR_EXIT;
@@ -712,7 +712,7 @@ int mi_unlink(const char* camino) {
        if(liberar_inodo(p_inodo) == ERROR_EXIT) {
             fprintf(
                 stderr, 
-                "[Error en mi_unlink()]: no se ha podido liberar elinodo %d", 
+                "[Error en mi_unlink()]: no se ha podido liberar elinodo %d\n", 
                 p_inodo);
             return ERROR_EXIT;
        }

@@ -783,7 +783,9 @@ int liberar_inodo(unsigned int ninodo){
         return ERROR_EXIT;
     }
 
-    fprintf(stderr, "[liberar_inodo() -> SB.cantBloquesLibres = %d\n", SB.cantBloquesLibres);
+    #if DEBUG6
+        fprintf(stderr, "[liberar_inodo() -> SB.cantBloquesLibres = %d\n", SB.cantBloquesLibres);
+    #endif
 
     if (bwrite(posSB, &SB) == EXIT_FAILURE) {
         fprintf(stderr, "[Error en liberar_inodo()]: no se ha podido escribir el superbloque\n");

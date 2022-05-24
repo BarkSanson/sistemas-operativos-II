@@ -16,7 +16,7 @@
 #define DEBUG3 1
 #define DEBUG4 0
 #define DEBUG5 1
-#define DEBUG6 1
+#define DEBUG6 0
 
 struct superbloque {
     unsigned int posPrimerBloqueMB;                         // Posición absoluta del primer bloque del mapa de bits

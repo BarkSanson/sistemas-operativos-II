@@ -16,17 +16,7 @@ int main(int argc, char** argv) {
     disco = argv[1];
     ruta = argv[2];
     texto = argv[3];
-
-    offset = ERROR_EXIT;
-    offset += atoi(argv[4]);
-
-    if(offset == ERROR_EXIT) {
-        fprintf(stderr,
-        "mi_escribir: el offset introducido no es válido");
-        return 1;
-    }
-
-    offset++;
+    offset = atoi(argv[4]);
 
     if(*(ruta + strlen(ruta) - 1) == '/') {
         fprintf(stderr,
