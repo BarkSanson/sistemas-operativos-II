@@ -441,6 +441,17 @@ int liberar_bloque(unsigned int nbloque){
     return nbloque;
 }
 
+/**
+ * Escribe el contenido de una variable de tipo
+ * inodo en un determinado inodo
+ * 
+ * @param   ninodo  Número del inodo a escribir
+ * @param   inodo   Buffer de tipo inodo que contiene
+ *                  los datos a escribir
+ * 
+ * @returns SUCCESS_EXIT si todo ha salido bien,
+ *          ERROR_EXIT de lo contrario
+ */
 int escribir_inodo(unsigned int ninodo, struct inodo* inodo) {
     struct superbloque SB;
     struct inodo inodos[BLOCKSIZE/INODOSIZE];
@@ -473,6 +484,16 @@ int escribir_inodo(unsigned int ninodo, struct inodo* inodo) {
     return SUCCESS_EXIT;
 }
 
+/**
+ * Lee un inodo del array de inodos
+ * 
+ * @param   ninodo  Número del inodo a leer
+ * @param   inodo   Buffer de tipo inodo donde meter
+ *                  los datos leídos
+ * 
+ * @returns SUCCESS_EXIT si todo ha salido bien,
+ *          ERROR_EXIT de lo contrario
+ */
 int leer_inodo(unsigned int ninodo, struct inodo *inodo) {
     struct superbloque SB;
     struct inodo inodos[BLOCKSIZE/INODOSIZE];
@@ -581,6 +602,16 @@ int obtener_nRangoBL(struct inodo* inodo, unsigned int nblogico, unsigned int* p
     return -1;
 }
 
+/**
+ * Generaliza la obtención de los índices
+ * de los bloques de inodos
+ * 
+ * @param   nblogico        Número de bloque lógico a traducir
+ * @param   nivel_punteros  Nivel de profundidad de los punteros
+ * 
+ * @returns El índice del bloque lógico si todo ha salido bien,
+ *          ERROR_EXIT de lo contrario
+ */
 int obtener_indice(unsigned int nblogico, int nivel_punteros){
     //Cuando el inodo apunta a uno de los 12 primeros bloques
     if(nblogico<DIRECTOS){
@@ -611,7 +642,7 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
     
     // Si hemos llegado aquí es porque ha habido error
     fprintf(stderr, "[Error en obtener_indice()]: no se cumple ninguna condición, se devuelve -1\n");
-    return -1;
+    return ERROR_EXIT;
 }
 
 /**

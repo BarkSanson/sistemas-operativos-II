@@ -488,6 +488,18 @@ int mi_stat(const char* camino, struct STAT* p_stat) {
     return p_inodo;
 }
 
+/**
+ * Escribe una cierta cantidad de bytes de
+ * contenido en un fichero, empezando desde un offset
+ * 
+ * @param   camino  Camino del fichero donde escribir
+ * @param   buff    Buffer con los datos a escribir
+ * @param   offset  Offset desde donde empezar a escribir
+ * @param   nbytes  Cantidad de bytes a escribir
+ * 
+ * @returns La cantidad de bytes escritos si todo ha salido bien,
+ *          ERROR_EXIT de lo contrario 
+ */
 int mi_write(
     const char* camino, 
     const void* buff, 
@@ -523,6 +535,19 @@ int mi_write(
     return bytesEscritos;
 }
 
+/**
+ * Lee una cierta cantidad de bytes de un
+ * fichero determinado, a partir de un offset
+ * 
+ * @param   camino  Camino del fichero a leer
+ * @param   buff    Buffer donde se volcarán los datos leídos
+ * @param   offset  Offset desde donde empezar a leer
+ * @param   nbytes  Cantidad de bytes a leer
+ * 
+ * @returns La cantidad de bytes leídos si todo ha ido bien,
+ *          ERROR_EXIT de lo contario
+ * 
+ */
 int mi_read(
     const char* camino, 
     void* buff, 
@@ -558,6 +583,15 @@ int mi_read(
     return bytesLeidos;
 }
 
+/**
+ * Crea un enlace físico entre dos ficheros
+ * 
+ * @param   camino1 Camino que queremos enlazar
+ * @param   camino2 Ruta del camino del enlace
+ * 
+ * @returns SUCCESS_EXIT si todo ha salido bien,
+ *          ERROR_EXIT de lo contrario
+ */
 int mi_link(const char* camino1, const char* camino2) {
     struct inodo inodo;
     struct entrada entrada;
@@ -630,6 +664,16 @@ int mi_link(const char* camino1, const char* camino2) {
     return SUCCESS_EXIT;
 }
 
+/**
+ * Borra la entrada de directorio especificada.
+ * Si es el último enlace existente, borra el inodo
+ * del fichero/directorio.
+ * 
+ * @param   camino  Camino de la entrada
+ * 
+ * @returns SUCCESS_EXIT si todo ha salido bien,
+ *          ERROR_EXIT de lo contrario
+ */
 int mi_unlink(const char* camino) {
     struct inodo inodo;
     struct entrada entrada;
