@@ -24,9 +24,6 @@ int main(int argc, char** argv) {
     bmount(disco);
 
     if(mi_unlink(ruta) == ERROR_EXIT) {
-        fprintf(
-            stderr, 
-            "mi_rmdir: no se ha podido eliminar el directorio correctamente\n");
         return 1;
     }
 

@@ -117,7 +117,9 @@ int buscar_entrada(
     memset(entrada.nombre, 0, sizeof(entrada.nombre));
 
     if(bread(posSB, &SB) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido leer el superbloque");
+        #if DEBUG7
+            fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido leer el superbloque");
+        #endif
         return ERROR_EXIT;
     }
 
@@ -140,7 +142,9 @@ int buscar_entrada(
     #endif
 
     if(leer_inodo(*p_inodo_dir, &inodo_dir) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en bsucar_entrada()]: no se ha podido leer el inodo %d", *p_inodo_dir);
+        #if DEBUG7
+            fprintf(stderr, "[Error en bsucar_entrada()]: no se ha podido leer el inodo %d", *p_inodo_dir);
+        #endif
         return ERROR_EXIT;
     }
 
@@ -156,7 +160,9 @@ int buscar_entrada(
     // secuencialmente
     if(cant_entradas_inodo > 0) {
         if(mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
-            fprintf(stderr, "[Error en buscar_entrada()]: no se han podido leer la entrada %d del inodo %d\n", num_entrada_inodo, *p_inodo_dir);
+            #if DEBUG7
+                fprintf(stderr, "[Error en buscar_entrada()]: no se han podido leer la entrada %d del inodo %d\n", num_entrada_inodo, *p_inodo_dir);
+            #endif
             return ERROR_EXIT;
         }
     
@@ -165,7 +171,9 @@ int buscar_entrada(
 
             memset(entrada.nombre, 0, sizeof(entrada.nombre));
             if(mi_read_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
-                fprintf(stderr, "[Error en buscar_entrada()]: no se han podido leer la entrada %d del inodo %d\n", num_entrada_inodo, *p_inodo_dir);
+                #if DEBUG7
+                    fprintf(stderr, "[Error en buscar_entrada()]: no se han podido leer la entrada %d del inodo %d\n", num_entrada_inodo, *p_inodo_dir);
+                #endif
                 return ERROR_EXIT;
             }
         }
@@ -206,7 +214,9 @@ int buscar_entrada(
                 #endif
 
                 if(mi_write_f(*p_inodo_dir, &entrada, num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
-                    fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido escribir la entrada en el inodo %d\n", *p_inodo_dir);
+                    #if DEBUG7
+                        fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido escribir la entrada en el inodo %d\n", *p_inodo_dir);
+                    #endif
                     if(entrada.ninodo != -1) {
                         liberar_inodo(entrada.ninodo);
                         #if DEBUG7
@@ -234,6 +244,15 @@ int buscar_entrada(
     return SUCCESS_EXIT;
 }
 
+/**
+ * Crea un fichero/directorio y su entrada
+ * 
+ * @param   camino      Camino donde crear el fichero/directorio
+ * @param   permisos    Permisos con los que crear el fichero/directorio
+ * 
+ * @returns SUCCESS_EXIT si todo ha salido bien
+ *          ERROR_EXIT de lo contrario
+ */
 int mi_creat(const char* camino, unsigned char permisos) {
     unsigned int p_inodo;
     unsigned int p_entrada;
@@ -277,17 +296,23 @@ int mi_dir(const char* camino, char* buffer, char tipo) {
     }
 
     if(leer_inodo(p_inodo, &inodo) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en mi_dir()]: no se ha podido leer el inodo %d\n", p_entrada);
+        #if DEBUG8
+            fprintf(stderr, "[Error en mi_dir()]: no se ha podido leer el inodo %d\n", p_entrada);
+        #endif
         return ERROR_EXIT;
     }
 
     if((inodo.permisos & 4) != 4) {
-        fprintf(stderr, "[Error en mi_dir()]: el inodo no tiene permisos de lectura\n");
+        #if DEBUG8
+            fprintf(stderr, "[Error en mi_dir()]: el inodo no tiene permisos de lectura\n");
+        #endif
         return ERROR_EXIT;
     }
 
     if(inodo.tipo != tipo) {
-        fprintf(stderr, "[Error en mi_dir()]: la sintaxis no concuerda con el tipo");
+        #if DEBUG8
+            fprintf(stderr, "[Error en mi_dir()]: la sintaxis no concuerda con el tipo");
+        #endif
         return ERROR_EXIT;
     }
 
@@ -309,8 +334,10 @@ int mi_dir(const char* camino, char* buffer, char tipo) {
         for(int i = 0; i < totEntradasInodo; i++) {
             // Leemos el inodo correspondiente a cada entrada
             if(leer_inodo(entradas[i % totEntradasBloque].ninodo, &inodo) == ERROR_EXIT) {
-                fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido leer el bloque de entradas %d",
-                i % totEntradasBloque);
+                #if DEBUG8
+                    fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido leer el bloque de entradas %d",
+                    i % totEntradasBloque);
+                #endif
                 return ERROR_EXIT;
             }
 
@@ -375,15 +402,20 @@ int mi_dir(const char* camino, char* buffer, char tipo) {
     // únicamente el inodo
     } else if(inodo.tipo == 'f') {
         if(mi_read_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
-            fprintf(stderr, 
-            "[Error en mi_dir()]: no se ha podido leer la entrada %d del inodo %d",
-            p_entrada,
-            p_inodo);
+            #if DEBUG8
+                fprintf(stderr, 
+                "[Error en mi_dir()]: no se ha podido leer la entrada %d del inodo %d",
+                p_entrada,
+                p_inodo);
+            #endif
+            return ERROR_EXIT;
         }
 
         if(leer_inodo(entrada.ninodo, &inodo) == ERROR_EXIT) {
-            fprintf(stderr, "[Error en mi_dir()]: no se ha podido leer el inodo de la entrada %d",
-            p_entrada);
+            #if DEBUG8
+                fprintf(stderr, "[Error en mi_dir()]: no se ha podido leer el inodo de la entrada %d",
+                p_entrada);
+            #endif
             return ERROR_EXIT;
         }
 
@@ -528,7 +560,9 @@ int mi_write(
 
     bytesEscritos = mi_write_f(p_inodo, buff, offset, nbytes);
     if(bytesEscritos == ERROR_EXIT) {
-        fprintf(stderr, "[Error en mi_write()]: no se ha podido escribir en el inodo %d", p_inodo);
+        #if DEBUG9
+            fprintf(stderr, "[Error en mi_write()]: no se ha podido escribir en el inodo %d", p_inodo);
+        #endif
         return ERROR_EXIT;
     }
 
@@ -563,7 +597,9 @@ int mi_read(
     // Si el camino termina con /, se trata
     // de un directorio, no de un fichero
     if(*(camino + strlen(camino) - 1) == '/') {
-        fprintf(stderr, "[Error en mi_read()]: el camino introducido no es de un fichero");
+        #if DEBUG9
+            fprintf(stderr, "[Error en mi_read()]: el camino introducido no es de un fichero");
+        #endif
         return ERROR_EXIT;
     }
 
@@ -576,7 +612,9 @@ int mi_read(
 
     bytesLeidos = mi_read_f(p_inodo, buff, offset, nbytes);
     if(bytesLeidos == ERROR_EXIT) {
-        fprintf(stderr, "[Error en mi_read()]: no se ha podido leer el inodo %d", p_inodo);
+        #if DEBUG9
+            fprintf(stderr, "[Error en mi_read()]: no se ha podido leer el inodo %d", p_inodo);
+        #endif
         return ERROR_EXIT;
     }
 
@@ -606,12 +644,16 @@ int mi_link(const char* camino1, const char* camino2) {
     }
 
     if(leer_inodo(p_inodo1, &inodo) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en mi_link()]: no se ha podido leer el inodo %d\n", p_inodo1);
+        #if DEBUG10
+            fprintf(stderr, "[Error en mi_link()]: no se ha podido leer el inodo %d\n", p_inodo1);
+        #endif
         return ERROR_EXIT;
     }
 
     if((inodo.permisos & 4) != 4) {
-        fprintf(stderr, "[Error en mi_link()]: el inodo no tiene permisos de lectura\n");
+        #if DEBUG10
+            fprintf(stderr, "[Error en mi_link()]: el inodo no tiene permisos de lectura\n");
+        #endif
         return ERROR_EXIT; 
     }
 
@@ -621,10 +663,12 @@ int mi_link(const char* camino1, const char* camino2) {
     }
 
     if(mi_read_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
-        fprintf(stderr, 
-        "[Error en mi_link()]: no se ha podido leer la entrada %d del inodo %d\n",
-        p_entrada2,
-        p_inodo_dir2);
+        #if DEBUG10
+            fprintf(stderr, 
+            "[Error en mi_link()]: no se ha podido leer la entrada %d del inodo %d\n",
+            p_entrada2,
+            p_inodo_dir2);
+        #endif
         return ERROR_EXIT; 
     }
 
@@ -632,19 +676,23 @@ int mi_link(const char* camino1, const char* camino2) {
     // la entrada y lo escribimos
     entrada.ninodo = p_inodo1;
     if(mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) == ERROR_EXIT) {
-        fprintf(stderr, 
-        "[Error en mi_link()]: no se ha podido escribir la entrada %d del inodo %d\n",
-        p_entrada2,
-        p_inodo_dir2);
+        #if DEBUG10
+            fprintf(stderr, 
+            "[Error en mi_link()]: no se ha podido escribir la entrada %d del inodo %d\n",
+            p_entrada2,
+            p_inodo_dir2);
+        #endif
         return ERROR_EXIT; 
     }
 
     // El nuevo inodo creado para camino2 no es 
     // necesario, por tanto lo liberamos
     if(liberar_inodo(p_inodo2) == ERROR_EXIT) {
-        fprintf(stderr, 
-        "[Error en mi_link()]: no se ha podido liberar el inodo %d\n",
-        p_inodo2);
+        #if DEBUG10
+            fprintf(stderr, 
+            "[Error en mi_link()]: no se ha podido liberar el inodo %d\n",
+            p_inodo2);
+        #endif
         return ERROR_EXIT; 
     }
 
@@ -655,9 +703,11 @@ int mi_link(const char* camino1, const char* camino2) {
     inodo.ctime = time(NULL);
 
     if(escribir_inodo(p_inodo1, &inodo) == ERROR_EXIT) {
-        fprintf(stderr, 
-        "[Error en mi_link()]: no se ha podido escribir el inodo %d\n",
-        p_inodo1);
+        #if DEBUG10
+            fprintf(stderr, 
+            "[Error en mi_link()]: no se ha podido escribir el inodo %d\n",
+            p_inodo1);
+        #endif
         return ERROR_EXIT; 
     }
 
@@ -689,21 +739,28 @@ int mi_unlink(const char* camino) {
     }
 
     if(leer_inodo(p_inodo, &inodo) == ERROR_EXIT) {
-        fprintf(stderr, "[Error en mi_unlink()]: no se ha podido leer el inodo %d\n", p_inodo);
+        #if DEBUG10
+            fprintf(stderr, "[Error en mi_unlink()]: no se ha podido leer el inodo %d\n", p_inodo);
+        #endif
         return ERROR_EXIT;
     }
 
     if(inodo.tipo == 'd' && inodo.tamEnBytesLog > 0) {
-        fprintf(stderr, "[Error en mi_unlink()]: no se puede eliminar un directorio que no esté vacío\n");
+        #if DEBUG10
+            fprintf(stderr, "[Error en mi_unlink()]: no se puede eliminar un directorio que no esté vacío\n");
+        #endif
+        fprintf(stderr, "El directorio %s no está vacío", camino);
         return ERROR_EXIT;
     }
 
     if(leer_inodo(p_inodo_dir, &inodo) == ERROR_EXIT) {
-        fprintf(
-            stderr, 
-            "[Error en mi_unlink()]: no se ha podido leer el inodo %d, padre de %d\n", 
-            p_inodo_dir, 
-            p_inodo);
+        #if DEBUG10
+            fprintf(
+                stderr, 
+                "[Error en mi_unlink()]: no se ha podido leer el inodo %d, padre de %d\n", 
+                p_inodo_dir, 
+                p_inodo);
+        #endif
         return ERROR_EXIT;
     }
 
@@ -713,18 +770,22 @@ int mi_unlink(const char* camino) {
 
         // Leemos la última entrada
         if(mi_read_f(p_inodo_dir, &entrada, (num_entradas_dir - 1) * sizeof(struct entrada), sizeof(entrada)) == ERROR_EXIT) {
-            fprintf(stderr, "[Error en mi_unlink()]: no se ha podido leer la entrada %d\n", num_entradas_dir - 1);
+            #if DEBUG10
+                fprintf(stderr, "[Error en mi_unlink()]: no se ha podido leer la entrada %d\n", num_entradas_dir - 1);
+            #endif
             return ERROR_EXIT;
         }
 
         // Escribimos la entrada leída en el
         // sitio en el que estaba la entrada a eliminar
         if(mi_write_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(entrada)) == ERROR_EXIT) {
-            fprintf(
-                stderr, 
-                "[Error en mi_unlink()]: no se ha escribir la entrada %d en la posición de p_entrada %d\n", 
-                num_entradas_dir,
-                p_entrada);
+            #if DEBUG10
+                fprintf(
+                    stderr, 
+                    "[Error en mi_unlink()]: no se ha escribir la entrada %d en la posición de p_entrada %d\n", 
+                    num_entradas_dir,
+                    p_entrada);
+            #endif
             return ERROR_EXIT;
         }
     }
@@ -732,19 +793,23 @@ int mi_unlink(const char* camino) {
     // Truncamos la última parte del inodo
     // que contiene la entrada
     if(mi_truncar_f(p_inodo_dir, inodo.tamEnBytesLog - sizeof(struct entrada)) == ERROR_EXIT) {
-        fprintf(
-            stderr, 
-            "[Error en mi_unlink()]: no se ha podido truncar el inodo %d\n", 
-            p_inodo_dir);
+        #if DEBUG10
+            fprintf(
+                stderr, 
+                "[Error en mi_unlink()]: no se ha podido truncar el inodo %d\n", 
+                p_inodo_dir);
+        #endif
         return ERROR_EXIT;
     }
 
     if(leer_inodo(p_inodo, &inodo) == ERROR_EXIT) {
-        fprintf(
-            stderr, 
-            "[Error en mi_unlink()]: no se ha podido leer el inodo %d de la entrada %d\n", 
-            p_inodo,
-            p_entrada);
+        #if DEBUG10
+            fprintf(
+                stderr, 
+                "[Error en mi_unlink()]: no se ha podido leer el inodo %d de la entrada %d\n", 
+                p_inodo,
+                p_entrada);
+        #endif
         return ERROR_EXIT;
     }
 
@@ -754,12 +819,25 @@ int mi_unlink(const char* camino) {
        // Si ya no quedan enlaces, podemos
        // eliminar el inodo
        if(liberar_inodo(p_inodo) == ERROR_EXIT) {
-            fprintf(
-                stderr, 
-                "[Error en mi_unlink()]: no se ha podido liberar elinodo %d\n", 
-                p_inodo);
+           #if DEBUG10
+                fprintf(
+                    stderr, 
+                    "[Error en mi_unlink()]: no se ha podido liberar elinodo %d\n", 
+                    p_inodo);
+            #endif
             return ERROR_EXIT;
        }
+    }
+
+    inodo.ctime = time(NULL);
+    if(escribir_inodo(p_inodo, &inodo) == ERROR_EXIT) {
+        #if DEBUG10
+            fprintf(
+                stderr, 
+                "[Error en mi_unlink()]: no se ha podido escribir el inodo %d", 
+                p_inodo);
+        #endif
+        return ERROR_EXIT;
     }
 
     return SUCCESS_EXIT;

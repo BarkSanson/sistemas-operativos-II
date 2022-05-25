@@ -13,9 +13,9 @@
 #define INDIRECTOS1 (NPUNTEROS * NPUNTEROS + INDIRECTOS0)             // 65.804
 #define INDIRECTOS2 (NPUNTEROS * NPUNTEROS * NPUNTEROS + INDIRECTOS1) // 16.843.020
 
-#define DEBUG3 1
+#define DEBUG3 0
 #define DEBUG4 0
-#define DEBUG5 1
+#define DEBUG5 0
 #define DEBUG6 0
 
 struct superbloque {

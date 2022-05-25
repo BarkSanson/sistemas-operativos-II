@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
         bytesTotalesLeidos += bytesLeidosIter;
 
         // Imprimimos lo leído por pantalla
-        write(1, buffer, sizeof(buffer));
+        write(1, buffer, bytesLeidosIter);
 
         // Limpiamos el buffer a cada iteración,
         // para que no haya basura

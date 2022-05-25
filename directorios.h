@@ -2,7 +2,10 @@
 
 #define TAMNOMBRE 60
 
-#define DEBUG7 0
+#define DEBUG7  0
+#define DEBUG8  0
+#define DEBUG9  0
+#define DEBUG10 0
 
 #define ERROR_CAMINO_INCORRECTO -2
 #define ERROR_PERMISO_LECTURA -3
