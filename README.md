@@ -1,13 +1,20 @@
-### Funcionamiento
+# Funcionamiento
 Para compilar el proyecto, hay que utilizar el comando ```make``` en la raíz del mismo.
 Los ejecutables necesarios (escribir, leer, etc.) estarán dentro de la carpeta build.
 Los scripts están dentro de la carpeta scripts.
-Debido a que los ejecutables están dentro de la carpeta build, los ficheros resultantes de
-estos se crearán en este mismo directorio. Por ejemplo, cuando se utilice ```mi_mkfs```,
-el dispositivo virtual se creará dentro de build.
 
-### Observaciones
-El proyecto en gran parte funciona de forma correcta. Sin embargo, somos conscientes de un
-bug aparecido a última hora en el cual en el caso de utilizar ```./escribir <nombre_dispositivo> <"$(cat fichero)> 1```
-se reservan los nodos de 9 en 9. Aunque hemos dedicado varias horas de debugging para intentar encontrar
-cuál es la causa de este bug, no hemos sido capaces de hacerlo.
+# Mejoras
+A continuación se describen las mejoras realizadas al sistema de ficheros:
+- **initMB()**: se ha optimizado la función para que reserve directamente
+los bloques pertenecientes al superbloque y al propio mapa de bits.
+- **mi_touch**: se ha creado el programa mi_touch, que se encarga de crear únicamente
+ficheros. Para crear directorios se utilizará el programa mi_mkdir.
+- **mi_rmdir**: se ha creado el programa mi_rmdir, que se encarga de eliminar
+directorios no vacíos. Para eliminar ficheros, existe el programa mi_rm.
+- **mi_dir()**: se han realizado tres mejoras a la función mi_dir():
+    - Se ha permitido que la función admita también ficheros, no 
+    únicamente directorios
+    - No solo lista el nombre del fichero/directorio, sino también su tipo,
+    sus permisos, su mtime y su tamEnBytesLog.
+    - Utiliza colores para diferenciar entre directorios, ficheros y
+    ficheros ejecutables.
