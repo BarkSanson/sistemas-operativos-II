@@ -259,11 +259,15 @@ int mi_creat(const char* camino, unsigned char permisos) {
     unsigned int p_inodo_dir = 0;
     int error;
 
+    mi_waitSem();
+
     if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos)) < 0) {
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
+    mi_signalSem();
     return SUCCESS_EXIT;
 }
 
@@ -638,8 +642,11 @@ int mi_link(const char* camino1, const char* camino2) {
     unsigned int p_inodo1, p_inodo2;
     unsigned int p_entrada1, p_entrada2;
 
+    mi_waitSem();
+
     if((error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4)) < 0) {
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
@@ -647,6 +654,7 @@ int mi_link(const char* camino1, const char* camino2) {
         #if DEBUG10
             fprintf(stderr, "[Error en mi_link()]: no se ha podido leer el inodo %d\n", p_inodo1);
         #endif
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
@@ -654,11 +662,13 @@ int mi_link(const char* camino1, const char* camino2) {
         #if DEBUG10
             fprintf(stderr, "[Error en mi_link()]: el inodo no tiene permisos de lectura\n");
         #endif
+        mi_signalSem();
         return ERROR_EXIT; 
     }
 
     if((error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6)) < 0) {
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
@@ -669,6 +679,7 @@ int mi_link(const char* camino1, const char* camino2) {
             p_entrada2,
             p_inodo_dir2);
         #endif
+        mi_signalSem();
         return ERROR_EXIT; 
     }
 
@@ -682,6 +693,7 @@ int mi_link(const char* camino1, const char* camino2) {
             p_entrada2,
             p_inodo_dir2);
         #endif
+        mi_signalSem();
         return ERROR_EXIT; 
     }
 
@@ -693,6 +705,7 @@ int mi_link(const char* camino1, const char* camino2) {
             "[Error en mi_link()]: no se ha podido liberar el inodo %d\n",
             p_inodo2);
         #endif
+        mi_signalSem();
         return ERROR_EXIT; 
     }
 
@@ -708,9 +721,11 @@ int mi_link(const char* camino1, const char* camino2) {
             "[Error en mi_link()]: no se ha podido escribir el inodo %d\n",
             p_inodo1);
         #endif
+        mi_signalSem();
         return ERROR_EXIT; 
     }
 
+    mi_signalSem();
     return SUCCESS_EXIT;
 }
 
@@ -733,8 +748,11 @@ int mi_unlink(const char* camino) {
     unsigned int num_entradas_dir;
     int error;
 
+    mi_waitSem();
+
     if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6)) < 0) {
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
@@ -742,6 +760,7 @@ int mi_unlink(const char* camino) {
         #if DEBUG10
             fprintf(stderr, "[Error en mi_unlink()]: no se ha podido leer el inodo %d\n", p_inodo);
         #endif
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
@@ -750,6 +769,7 @@ int mi_unlink(const char* camino) {
             fprintf(stderr, "[Error en mi_unlink()]: no se puede eliminar un directorio que no esté vacío\n");
         #endif
         fprintf(stderr, "El directorio %s no está vacío", camino);
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
@@ -761,6 +781,7 @@ int mi_unlink(const char* camino) {
                 p_inodo_dir, 
                 p_inodo);
         #endif
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
@@ -773,6 +794,7 @@ int mi_unlink(const char* camino) {
             #if DEBUG10
                 fprintf(stderr, "[Error en mi_unlink()]: no se ha podido leer la entrada %d\n", num_entradas_dir - 1);
             #endif
+            mi_signalSem();
             return ERROR_EXIT;
         }
 
@@ -786,6 +808,7 @@ int mi_unlink(const char* camino) {
                     num_entradas_dir,
                     p_entrada);
             #endif
+            mi_signalSem();
             return ERROR_EXIT;
         }
     }
@@ -799,6 +822,7 @@ int mi_unlink(const char* camino) {
                 "[Error en mi_unlink()]: no se ha podido truncar el inodo %d\n", 
                 p_inodo_dir);
         #endif
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
@@ -810,6 +834,7 @@ int mi_unlink(const char* camino) {
                 p_inodo,
                 p_entrada);
         #endif
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
@@ -825,6 +850,7 @@ int mi_unlink(const char* camino) {
                     "[Error en mi_unlink()]: no se ha podido liberar elinodo %d\n", 
                     p_inodo);
             #endif
+            mi_signalSem();
             return ERROR_EXIT;
        }
     }
@@ -837,8 +863,10 @@ int mi_unlink(const char* camino) {
                 "[Error en mi_unlink()]: no se ha podido escribir el inodo %d", 
                 p_inodo);
         #endif
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
+    mi_signalSem();
     return SUCCESS_EXIT;
 }

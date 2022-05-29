@@ -48,7 +48,9 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     desp1 = offset % BLOCKSIZE;
     desp2 = (offset + nbytes - 1)%BLOCKSIZE;
 
+    mi_waitSem();
     nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
+    mi_signalSem();
 
     if(primerBL == ultimoBL) {  // La operación afecta a un único bloque
         #if DEBUG
@@ -106,7 +108,9 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
                 fprintf(stderr, "%s<ESCRIBIENDO BLOQUE %d%s", YELLOW, i, RESET_COLOR);
             #endif
 
+            mi_waitSem();
             nbfisico = traducir_bloque_inodo(ninodo, i, 1);
+            mi_signalSem();
 
             if(bwrite(nbfisico, buf_original + (BLOCKSIZE - desp1) + (i - primerBL - 1) * BLOCKSIZE) == ERROR_EXIT) {
                 fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el bloque físico %d del inodo\n", i);
@@ -123,7 +127,9 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
         }
 
         // Ultimo bloque lógico
+        mi_waitSem();
         nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
+        mi_signalSem();
 
         if(bread(nbfisico, buf_bloque) == ERROR_EXIT) {
             fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el bloque físico %d del inodo\n", nbfisico);
@@ -147,6 +153,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
     }
 
     // Actualizamos la metainformación del inodo
+    mi_waitSem();
     if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
         fprintf(stderr, "[Error en mi_write_f()]: no se ha podido leer el inodo %d", ninodo);
         return ERROR_EXIT;
@@ -161,6 +168,7 @@ int mi_write_f(unsigned int ninodo, const void* buf_original, unsigned int offse
         fprintf(stderr, "[Error en mi_write_f()]: no se ha podido escribir el inodo %d", ninodo);
         return ERROR_EXIT;
     }
+    mi_signalSem();
 
     return bytesEscritos; 
 }
@@ -294,6 +302,7 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
         bytesLeidos += desp2 + 1;
     }
 
+    mi_waitSem();
     if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
         fprintf(stderr, "[Error en mi_read_f()]: no se ha podido leer el inodo %d\n", ninodo);
         #if DEBUG
@@ -312,6 +321,7 @@ int mi_read_f(unsigned int ninodo, void* buf_original, unsigned int offset, unsi
         return ERROR_EXIT;
     }
 
+    mi_signalSem();
     return bytesLeidos;
 }
 
@@ -358,11 +368,13 @@ int mi_stat_f(unsigned int ninodo, struct STAT* p_stat) {
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
     struct inodo inodo;
 
+    mi_waitSem();
     if(leer_inodo(ninodo, &inodo) == ERROR_EXIT) {
         fprintf(stderr, "[Error en mi_chmod_f()]: no se ha podido leer el inodo %d\n", ninodo);
         #if DEBUG
             fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
         #endif
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
@@ -374,9 +386,11 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos) {
         #if DEBUG
             fprintf(stderr, "%s<ERROR EN LA LÍNEA %d DE FICHEROS.C>%s", RED, __LINE__, RESET_COLOR);
         #endif
+        mi_signalSem();
         return ERROR_EXIT;
     }
 
+    mi_signalSem();
     return SUCCESS_EXIT;
 }
 

@@ -1,10 +1,14 @@
 CC=gcc
 CFLAGS=-c -g -Wall -std=gnu99 -lm
+LDFLAGS=-pthreads
 
 BUILD_DIR=build/
-SOURCES=mi_mkfs.c bloques.c ficheros_basico.c ficheros.c directorios.c leer_sf.c escribir.c leer.c permitir.c truncar.c mi_ls.c mi_mkdir.c mi_chmod.c mi_stat.c mi_touch.c mi_cat.c mi_escribir.c mi_link.c mi_rm.c mi_rmdir.c
+SOURCES=mi_mkfs.c bloques.c ficheros_basico.c ficheros.c directorios.c 
+leer_sf.c escribir.c leer.c permitir.c truncar.c mi_ls.c mi_mkdir.c 
+mi_chmod.c mi_stat.c mi_touch.c mi_cat.c mi_escribir.c mi_link.c mi_rm.c 
+mi_rmdir.c semaforo_mutex_posix.c
 LIBRARIES=$(BUILD_DIR)bloques.o $(BUILD_DIR)ficheros_basico.o $(BUILD_DIR)ficheros.o $(BUILD_DIR)directorios.o
-INCLUDES=bloques.h ficheros_basico.h ficheros.h directorios.h
+INCLUDES=bloques.h ficheros_basico.h ficheros.h directorios.h semaforo_mutex_posix.h
 PROGRAMS=mi_mkfs escribir leer leer_sf permitir truncar mi_ls mi_mkdir mi_chmod mi_stat mi_touch mi_escribir mi_cat mi_link mi_rm mi_rmdir
 OBJECTS=$(SOURCES:.c=.o)
 
