@@ -21,6 +21,10 @@ int bmount(const char *camino) {
         }
     }
 
+    if(fd > 0) {
+        close(fd);
+    }
+
     // Inicializamos el dispositivo virtual
     umask(000);
     fd = open(camino, O_RDWR | O_CREAT, 0666);
@@ -42,6 +46,8 @@ int bmount(const char *camino) {
 int bumount() {
     // Eliminamos el semáforo
     deleteSem();
+
+    fd = close(fd);
 
     // Cerramos el dispositivo virtual
     if(close(fd)== -1){
