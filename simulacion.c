@@ -21,7 +21,8 @@ int main(int argc, char** argv) {
 
     if(argc != 2) {
         fprintf(stderr, "simulacion.c: sintaxis incorrecta, la sintaxis debe"
-        " seguir la siguiente forma:\n\t./simulacion <disco>");
+        " seguir la siguiente forma:\n\t./simulacion <disco>\n");
+        return 1;
     }
 
     disco = argv[1];

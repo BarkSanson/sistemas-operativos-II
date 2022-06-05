@@ -4,8 +4,8 @@
 
 #define DEBUG12 1
 
-#define NUMPROCESOS 100
-#define NUMESCRITURAS 50
+#define NUMPROCESOS 3
+#define NUMESCRITURAS 10
 #define REGMAX 500000
 
 struct REGISTRO {

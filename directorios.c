@@ -519,7 +519,9 @@ int mi_stat(const char* camino, struct STAT* p_stat) {
         return ERROR_EXIT;
     }
 
-    mi_stat_f(p_inodo, p_stat);
+    if(mi_stat_f(p_inodo, p_stat) == ERROR_EXIT) {
+        return ERROR_EXIT;
+    }
 
     return p_inodo;
 }
@@ -550,10 +552,10 @@ int mi_write(
 
     // Si el camino termina con /, se trata
     // de un directorio, no de un fichero
-    if(*(camino + strlen(camino) - 1) == '/') {
-        fprintf(stderr, "[Error en mi_write()]: el camino introducido no es de un fichero");
-        return ERROR_EXIT;
-    }
+    // if(*(camino + strlen(camino) - 1) == '/') {
+    //     fprintf(stderr, "[Error en mi_write()]: el camino introducido no es de un fichero");
+    //     return ERROR_EXIT;
+    // }
 
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6);
 
@@ -600,12 +602,12 @@ int mi_read(
 
     // Si el camino termina con /, se trata
     // de un directorio, no de un fichero
-    if(*(camino + strlen(camino) - 1) == '/') {
-        #if DEBUG9
-            fprintf(stderr, "[Error en mi_read()]: el camino introducido no es de un fichero");
-        #endif
-        return ERROR_EXIT;
-    }
+    // if(*(camino + strlen(camino) - 1) == '/') {
+    //     #if DEBUG9
+    //         fprintf(stderr, "[Error en mi_read()]: el camino introducido no es de un fichero");
+    //     #endif
+    //     return ERROR_EXIT;
+    // }
 
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6);
 
