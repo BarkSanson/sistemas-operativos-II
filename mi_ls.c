@@ -1,3 +1,6 @@
+/**
+ * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
+ */ 
 #include "directorios.h"
 
 int main(int argc, char** argv) {
@@ -19,7 +22,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    printf("Nombre\tTipo\tPermisos\tTamaño\tmtime\n");
+    printf("Nombre\t\tTipo\tPermisos\tTamaño\tmtime\n");
     printf("------------------------------------------------------\n");
     printf(buffer);
 

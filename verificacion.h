@@ -1,6 +1,6 @@
 #include "simulacion.h"
 
-#define DEBUG13 1
+#define DEBUG13 0
 
 struct INFORMACION {
     int pid;

@@ -1,5 +1,4 @@
 /**
- * 
  * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
  */ 
 #include "ficheros.h"

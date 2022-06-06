@@ -1,3 +1,6 @@
+/**
+ * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
+ */ 
 #include "directorios.h"
 
 #define TAM_BUFFER 1500

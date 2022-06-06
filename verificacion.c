@@ -1,8 +1,12 @@
+/**
+ * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
+ */ 
+
 #include "verificacion.h"
 
 int main(int argc, char** argv) {
     struct STAT stat;
-    struct entrada entradas[NUMPROCESOS * sizeof(struct entrada)];
+    struct entrada entradas[NUMPROCESOS];
     char* dispositivo;
     char* directorio_simulacion;
     unsigned int numEntradas;
@@ -24,44 +28,46 @@ int main(int argc, char** argv) {
     bmount(dispositivo);
 
     if(mi_stat(directorio_simulacion, &stat) == ERROR_EXIT) {
-        fprintf(stderr, "verificacion.c: no se ha podido leer "
-                "el stat del directorio de simulación");
+        fprintf(stderr, "verificacion.c: no se ha podido leer el stat de %s", directorio_simulacion);
         return 1;
     }
 
-    numEntradas = stat.tamEnBytesLog/sizeof(struct entrada);
+    numEntradas = stat.tamEnBytesLog / sizeof(struct entrada);
 
     if(numEntradas != NUMPROCESOS) {
-        fprintf(stderr, "verificacion.c: el número de entradas no coincide"
-                "con el número de procesos");
+        fprintf(stderr, "verificacion.c: el número de entradas no coincide con el de procesos");
         return 1;
     }
 
-    char fichero_informe[strlen(directorio_simulacion) + strlen("informe.txt")];
+    // Creamos el fichero informe.txt
+    char fichero_informe[
+        strlen(directorio_simulacion) + strlen("informe.txt") + 1];
+
     sprintf(fichero_informe, "%sinforme.txt", directorio_simulacion);
 
     if(mi_creat(fichero_informe, 6) == ERROR_EXIT) {
-        fprintf(stderr, "verificacion.c: no se ha podido crear el fichero informe.txt");
-        return 1;
-    
-    }
-
-    if(mi_read(directorio_simulacion, entradas, 0, sizeof(entradas)) == ERROR_EXIT) {
-        fprintf(stderr, "verificacion.c: error leyendo las entradas del directorio");
+        fprintf(stderr, "verificacion.c: no se ha podido crear el fichero %s", fichero_informe);
         return 1;
     }
 
-    int offset_informe = 0;
+    // Leemos las entradas del directorio de la simulación
+    if(mi_read(directorio_simulacion, entradas, 0, sizeof(entradas) * NUMPROCESOS) == ERROR_EXIT) {
+        fprintf(stderr, "verificacion.c: error leyendo las entradas de %s", directorio_simulacion);
+        return 1;
+    }
+
     for(int i = 0; i < numEntradas; i++) {
-        struct INFORMACION info;
         pid_t pid;
+        struct INFORMACION info;
         char fichero_prueba[
-            strlen(directorio_simulacion) + 
-            strlen(entradas[i].nombre) + 
-            strlen("prueba.dat")];
-        int cant_registros_buffer_escrituras = 256 * 24;
-        int offset;
+            strlen(directorio_simulacion) + strlen(entradas[i].nombre) + strlen("prueba.dat") + 4
+        ];
         char buffer[BLOCKSIZE];
+        int cant_registros_buffer_escrituras = 256;
+        struct REGISTRO buffer_escrituras[cant_registros_buffer_escrituras];
+        int offset_escrituras = 0;
+        int offset_informe;
+        int leidos;
 
         pid = atoi(strchr(entradas[i].nombre, '_') + 1);
         info.pid = pid;
@@ -69,99 +75,97 @@ int main(int argc, char** argv) {
 
         sprintf(
             fichero_prueba, 
-            "%s%s/prueba.dat", 
-            directorio_simulacion, 
+            "%s%s/prueba.dat",
+            directorio_simulacion,
             entradas[i].nombre);
 
-        struct REGISTRO buffer_escrituras[cant_registros_buffer_escrituras];
         memset(buffer_escrituras, 0, sizeof(buffer_escrituras));
 
-        // Recorremos las escrituras de prueba.dat
-        offset = 0;
-        while(mi_read(fichero_prueba, buffer_escrituras, offset, sizeof(buffer_escrituras)) > 0) {
-            for(int i = 0; i < cant_registros_buffer_escrituras; i++) {
-                // Si la estructura no es válida, seguimos leyendo
-                if(info. pid!= buffer_escrituras[i].pid) {
+        // Recorremos secuencialmente los registros escritos en prueba.dat
+        offset_escrituras = 0;
+        while((leidos = mi_read(fichero_prueba, buffer_escrituras, offset_escrituras, sizeof(buffer_escrituras))) > 0) {
+            for(int j = 0; j < cant_registros_buffer_escrituras; j++) {
+                if(info.pid == buffer_escrituras[j].pid) {
                     if(info.nEscrituras == 0) {
-                        info.MenorPosicion = buffer_escrituras[i];
-                        info.MayorPosicion = buffer_escrituras[i];
-                        info.PrimeraEscritura = buffer_escrituras[i];
-                        info.UltimaEscritura = buffer_escrituras[i];
+                        // Inicializamos todo con el primer registro
+                        info.PrimeraEscritura = buffer_escrituras[j];
+                        info.UltimaEscritura = buffer_escrituras[j];
+                        info.MenorPosicion = buffer_escrituras[j];
+                        info.MayorPosicion = buffer_escrituras[j];
                         info.nEscrituras++;
                     } else {
-                        // Para actualizar PrimeraEscrutura o UltimaEscritura,
-                        // comprobamos que el nEscritura del registro leido sea menor/mayor que el guardado
-                        if(buffer_escrituras[i].nEscritura < info.PrimeraEscritura.nEscritura) {
-                            info.PrimeraEscritura = buffer_escrituras[i];
-                        }
-                        if(buffer_escrituras[i].nEscritura > info.UltimaEscritura.nEscritura) {
-                            info.UltimaEscritura = buffer_escrituras[i];
+                        // Comparamos el registro con el guardado en info.
+                        // Si se ha escrito antes/despues y su nEscritura es menor/mayor,
+                        // entonces lo sustituimos en la Primera/UltimaEscritura
+                        if((difftime(buffer_escrituras[j].fecha, info.UltimaEscritura.fecha)) >= 0 &&
+                            buffer_escrituras[j].nEscritura > info.UltimaEscritura.nEscritura) {
+                            info.UltimaEscritura = buffer_escrituras[j];
                         }
 
-                        // Lo mismo para actualizar MenorPosicion o MayorPosición,
-                        // pero con el nRegistro
-                        if(buffer_escrituras[i].nRegistro < info.MenorPosicion.nRegistro) {
-                            info.MenorPosicion = buffer_escrituras[i];
+                        if((difftime(buffer_escrituras[j].fecha, info.PrimeraEscritura.fecha)) <= 0 &&
+                            buffer_escrituras[j].nEscritura < info.PrimeraEscritura.nEscritura) {
+                            info.PrimeraEscritura = buffer_escrituras[j];
                         }
-                        if(buffer_escrituras[i].nRegistro > info.MayorPosicion.nRegistro) {
-                            info.MayorPosicion = buffer_escrituras[i];
+                        
+                        // Con Mayor/MenorPosicion, simplemente compramos el nRegistro
+                        if(buffer_escrituras[j].nRegistro > info.MayorPosicion.nRegistro) {
+                            info.MayorPosicion = buffer_escrituras[j];
+                        }
+
+                        if(buffer_escrituras[j].nRegistro < info.MenorPosicion.nRegistro) {
+                            info.MenorPosicion = buffer_escrituras[j];
                         }
                         info.nEscrituras++;
                     }
                 }
-
-                memset(buffer_escrituras, 0, sizeof(buffer_escrituras));
-                offset += sizeof(buffer_escrituras);
-                // #if DEBUG13
-                //     fprintf(stderr, "[verificacion.c -> registro %d offset %d\n", i, offset);
-                // #endif
             }
+            memset(buffer_escrituras, 0, sizeof(buffer_escrituras));
+            offset_escrituras += sizeof(buffer_escrituras);
         }
 
         #if DEBUG13
             fprintf(
-                stderr, 
-                "[%d) %d escrituras validadas en %s]\n",
+                stderr,
+                "[%d) %d escrituraas validadas en %s]\n",
                 i + 1,
                 info.nEscrituras,
-                fichero_prueba);
+                fichero_prueba
+            );
         #endif
 
-        memset(buffer, 0, sizeof(buffer));
+        // Resetamos el buffer y le escribimos la información relevante
+        memset(buffer, 0, BLOCKSIZE);
 
         sprintf(buffer, "PID: %d\n", info.pid);
         sprintf(buffer + strlen(buffer), "Número de escrituras: %d\n", info.nEscrituras);
         sprintf(
             buffer + strlen(buffer), 
-            "Primera Escritura\t%d\t%d\t%s\n",
+            "Primera escritura %d %d %s\n",
             info.PrimeraEscritura.nEscritura,
             info.PrimeraEscritura.nRegistro,
             asctime(localtime(&info.PrimeraEscritura.fecha)));
         sprintf(
             buffer + strlen(buffer), 
-            "Última escritura\t%d\t%d\t%s\n",
+            "Ultima escritura %d %d %s\n",
             info.UltimaEscritura.nEscritura,
             info.UltimaEscritura.nRegistro,
             asctime(localtime(&info.UltimaEscritura.fecha)));
         sprintf(
             buffer + strlen(buffer), 
-            "Menor posicion\t%d\t%d\t%s\n",
+            "Menor posición %d %d %s\n",
             info.MenorPosicion.nEscritura,
             info.MenorPosicion.nRegistro,
             asctime(localtime(&info.MenorPosicion.fecha)));
         sprintf(
             buffer + strlen(buffer), 
-            "Mayor posicion\t%d\t%d\t%s\n",
+            "Mayor posición %d %d %s\n",
             info.MayorPosicion.nEscritura,
             info.MayorPosicion.nRegistro,
             asctime(localtime(&info.MayorPosicion.fecha)));
-        sprintf(buffer + strlen(buffer), "\n\n");
 
-        if((offset_informe += mi_write(fichero_informe, buffer, offset_informe, strlen(buffer)) < 0)) {
-            fprintf(stderr, "verificacion.c: error escribiendo el el fichero %s", fichero_informe);
-            bumount();
-            return 1;
-        }
+        sprintf(buffer + strlen(buffer), "\n");
+
+        offset_informe += mi_write(fichero_informe, buffer, offset_informe, strlen(buffer)); 
     }
 
     bumount();

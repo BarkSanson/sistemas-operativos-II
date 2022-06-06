@@ -1,9 +1,34 @@
+/**
+ * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
+ */ 
 #include "bloques.h"
 #include "semaforo_mutex_posix.h"
 
 static int fd;
 static sem_t* mutex;
 static unsigned int inside_sc = 0;
+static int tamSFM; // Tamanyo de memoria compartida
+static void* ptrSFM; // Puntero a memoria compartida
+
+/**
+ * Mapea un fichero en memoria
+ * 
+ * @param   fd  Descriptor del fichero a mapear
+ * 
+ * @returns Un puntero hacia la memoria compartid
+ */ 
+void* do_mmap(int fd) {
+    struct stat st;
+    void* ptr;
+
+    fstat(fd, &st);
+    tamSFM = st.st_size;
+
+    if((ptr = mmap(NULL, tamSFM, PROT_WRITE, MAP_SHARED, fd, 0)) == (void*) - 1)
+        fprintf(stderr, "[Error en do_mmap()]: error %d: %s\n", errno, strerror(errno));
+
+    return ptr;
+}
 
 /**
  * Inicializa el flujo de datos, nuestro disco
@@ -33,6 +58,8 @@ int bmount(const char *camino) {
         return ERROR_EXIT;
     }
 
+    ptrSFM = do_mmap(fd);
+
     return SUCCESS_EXIT;
 }
 
@@ -46,6 +73,12 @@ int bmount(const char *camino) {
 int bumount() {
     // Eliminamos el semáforo
     deleteSem();
+
+    // Volcamos a disco
+    msync(ptrSFM, tamSFM, MS_ASYNC);
+
+    // Liberamos la memoria ocupada por el fichero mapeado
+    munmap(ptrSFM, tamSFM);
 
     fd = close(fd);
 
@@ -67,19 +100,19 @@ int bumount() {
  *              ERROR_EXIT si ha habido un error 
 */
 int bwrite(unsigned int nbloque, const void *buf) {
+    int tam;
 
-    if(lseek(fd, nbloque * BLOCKSIZE, SEEK_SET) == -1) {
-        fprintf(stderr, "Error %d moviendo el puntero para escribir el bloque %d: %s\n", errno, nbloque, strerror(errno));
-        return ERROR_EXIT;
+    if(nbloque * BLOCKSIZE <= tamSFM) {
+        tam = BLOCKSIZE;
+    } else {
+        tam = tamSFM - nbloque * BLOCKSIZE;
     }
 
-    if(write(fd, buf, BLOCKSIZE) == -1) {
-        fprintf(stderr, "Error %d escribiendo bloque: %s\n", errno, strerror(errno));
-        return ERROR_EXIT;
+    if(tam > 0) {
+        memcpy(ptrSFM + nbloque*BLOCKSIZE, buf, tam);
     }
 
     return SUCCESS_EXIT;
-
 }
 /**
  * Lee el contenido de un bloque
@@ -90,15 +123,16 @@ int bwrite(unsigned int nbloque, const void *buf) {
  *              ERROR_EXIT si ha habido un error 
 */
 int bread(unsigned int nbloque, void *buf) {
+    int tam;
 
-    if(lseek(fd, nbloque * BLOCKSIZE, SEEK_SET) == -1) {
-        fprintf(stderr, "Error %d moviendo el puntero para leer el bloque %d: %s\n", errno, nbloque, strerror(errno));
-        return ERROR_EXIT;
+    if(nbloque * BLOCKSIZE <= tamSFM) {
+        tam = BLOCKSIZE;
+    } else {
+        tam = tamSFM - nbloque * BLOCKSIZE;
     }
 
-    if(read(fd, buf, BLOCKSIZE) == -1) {
-        fprintf(stderr, "Error %d leyendo el bloque: %s\n", errno, strerror(errno));
-        return ERROR_EXIT;
+    if(tam > 0) {
+        memcpy(buf, ptrSFM + nbloque*BLOCKSIZE, tam);
     }
 
     return SUCCESS_EXIT;

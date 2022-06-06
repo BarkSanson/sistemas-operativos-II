@@ -1,7 +1,5 @@
 #include "ficheros.h"
 
-#define TAMNOMBRE 60
-
 #define DEBUG7  0
 #define DEBUG8  0
 #define DEBUG9  0
@@ -17,12 +15,24 @@
 
 #define TAMFILA 100
 #define TAMBUFFER (TAMFILA*1000)
+#define TAMNOMBRE 60
+#define PROFUNDIDAD 32
+
+#define TAMCACHE 2
+#define POS_CACHE_LECTURA 0
+#define POS_CACHE_ESCRITURA 1
+
 
 #define DIRECTORY_COLOR "\033[1;34m"
 
 struct entrada{
     char nombre[TAMNOMBRE];
     unsigned int ninodo;
+};
+
+struct UltimaEntrada {
+    char camino[TAMNOMBRE * PROFUNDIDAD];
+    int p_inodo;
 };
 
 int extraer_camino(

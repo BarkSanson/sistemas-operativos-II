@@ -1,3 +1,6 @@
+/**
+ * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
+ */ 
 #include "directorios.h"
 
 int main(int argc, char** argv) {

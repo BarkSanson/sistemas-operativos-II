@@ -1,4 +1,10 @@
+/**
+ * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
+ */ 
 #include "directorios.h"
+
+// 0 para la lectura, 1 para escritura
+static struct UltimaEntrada MiniCacheEscrituraLectura[TAMCACHE];
 
 /**
  * @brief dado un path o camino este se divide en dos, la ruta de la carpeta
@@ -289,9 +295,7 @@ int mi_dir(const char* camino, char* buffer, char tipo) {
     unsigned int p_inodo;
     unsigned int p_entrada;
     unsigned int p_inodo_dir = 0;
-    unsigned int totEntradasBloque;
     unsigned int totEntradasInodo;
-    int offset;
     int error;
 
     if((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0) {
@@ -320,27 +324,26 @@ int mi_dir(const char* camino, char* buffer, char tipo) {
         return ERROR_EXIT;
     }
 
-    totEntradasBloque = BLOCKSIZE / sizeof(struct entrada);
     totEntradasInodo = inodo.tamEnBytesLog / sizeof(struct entrada);
 
     // Si el inodo es un directorio, mostramos sus
     // entradas
     if(inodo.tipo == 'd') {
-
         // Utilizamos un buffer para no tener que
         // leer entrada a entrada
-        struct entrada entradas[totEntradasBloque];
-        memset(entradas, 0, totEntradasBloque);
+        // struct entrada entradas[totEntradasBloque];
+        // memset(entradas, 0, sizeof(entradas));
 
-        offset = 0;
-        offset = mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+        int nEntrada = 0;
+
+        mi_read_f(p_inodo, &entrada, nEntrada * sizeof(struct entrada), sizeof(struct entrada));
 
         for(int i = 0; i < totEntradasInodo; i++) {
             // Leemos el inodo correspondiente a cada entrada
-            if(leer_inodo(entradas[i % totEntradasBloque].ninodo, &inodo) == ERROR_EXIT) {
+            if(leer_inodo(entrada.ninodo, &inodo) == ERROR_EXIT) {
                 #if DEBUG8
-                    fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido leer el bloque de entradas %d",
-                    i % totEntradasBloque);
+                    fprintf(stderr, "[Error en buscar_entrada()]: no se ha podido leer el inodo %d",
+                    entrada.ninodo);
                 #endif
                 return ERROR_EXIT;
             }
@@ -355,7 +358,7 @@ int mi_dir(const char* camino, char* buffer, char tipo) {
             
             // Vamos creando el buffer, primero con
             // el nombre de la entrada
-            strcat(buffer, entradas[i % totEntradasBloque].nombre);
+            strcat(buffer, entrada.nombre);
             strcat(buffer, "\t");
 
             strcat(buffer, RESET_COLOR);
@@ -396,8 +399,7 @@ int mi_dir(const char* camino, char* buffer, char tipo) {
 
             strcat(buffer, "\n");
             
-            if((offset % totEntradasBloque) == 0) 
-                offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+            mi_read_f(p_inodo, &entrada, ++nEntrada * sizeof(struct entrada), sizeof(struct entrada));
         }
 
         return totEntradasInodo;
@@ -556,8 +558,14 @@ int mi_write(
     //     fprintf(stderr, "[Error en mi_write()]: el camino introducido no es de un fichero");
     //     return ERROR_EXIT;
     // }
+    if(strcmp(MiniCacheEscrituraLectura->camino, camino) == 0) {
+        p_inodo = MiniCacheEscrituraLectura[POS_CACHE_ESCRITURA].p_inodo;
+    } else {
+        error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6);
+        strcpy(MiniCacheEscrituraLectura[POS_CACHE_ESCRITURA].camino, camino);
+        MiniCacheEscrituraLectura[POS_CACHE_ESCRITURA].p_inodo= p_inodo; 
+    }
 
-    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6);
 
     if(p_inodo < 0) {
         mostrar_error_buscar_entrada(error);
@@ -600,16 +608,15 @@ int mi_read(
     int error;
     int bytesLeidos;
 
-    // Si el camino termina con /, se trata
-    // de un directorio, no de un fichero
-    // if(*(camino + strlen(camino) - 1) == '/') {
-    //     #if DEBUG9
-    //         fprintf(stderr, "[Error en mi_read()]: el camino introducido no es de un fichero");
-    //     #endif
-    //     return ERROR_EXIT;
-    // }
+    if(strcmp(MiniCacheEscrituraLectura->camino, camino) == 0) {
+        p_inodo = MiniCacheEscrituraLectura[POS_CACHE_LECTURA].p_inodo;
+    } else {
+        error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6);
+        strcpy(MiniCacheEscrituraLectura[POS_CACHE_LECTURA].camino, camino);
+        MiniCacheEscrituraLectura[POS_CACHE_LECTURA].p_inodo= p_inodo;
+        
+    }
 
-    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 6);
 
     if(p_inodo < 0) {
         mostrar_error_buscar_entrada(error);

@@ -4,10 +4,10 @@ rm disco
 echo "$ ../build/mi_mkfs disco 100000"
 ../build/mi_mkfs disco 100000
 echo "################################################################################"
-echo "$ ../build/escribir disco "$(cat texto2.txt)" 1"
+echo "$ ../build/escribir disco "$(cat ../scripts/texto2.txt)" 1"
 echo "#escribimos el texto contenido en text2.txt en los offsets  9000, 209000, 30725000, "
 echo "#409605000 y 480000000 de inodos diferentes"
-../build/escribir disco "$(cat texto2.txt)" 1
+../build/escribir disco "$(cat ../scripts/texto2.txt)" 1
 echo "###############################################################################"
 echo "$ ../build/leer disco 2 > ext4.txt"
 echo "#leemos el contenido del inodo 2 (escrito en el offset 209000) y lo direccionamos"

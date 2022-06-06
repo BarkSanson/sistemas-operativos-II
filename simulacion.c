@@ -1,3 +1,6 @@
+/**
+ * Autores: Arnau Vidal Moreno y Martín Ignacio Rizzo
+ */ 
 #include "simulacion.h"
 
 static int acabados = 0;
@@ -17,13 +20,16 @@ int main(int argc, char** argv) {
     char fecha[80];
     char cadena_simul_fecha[25];
     char* disco;
-    signal(SIGCHLD, reaper);
 
     if(argc != 2) {
         fprintf(stderr, "simulacion.c: sintaxis incorrecta, la sintaxis debe"
         " seguir la siguiente forma:\n\t./simulacion <disco>\n");
         return 1;
     }
+
+    // Asignamos la función reaper a la
+    // senyal SIGCHLD
+    signal(SIGCHLD, reaper);
 
     disco = argv[1];
 
@@ -47,7 +53,6 @@ int main(int argc, char** argv) {
         
         // Es el hijo
         if(pid == 0) {
-            struct REGISTRO registro;
             char nombre_directorio[50];
             char nombre_fichero[100];
             bmount(disco);
@@ -60,15 +65,36 @@ int main(int argc, char** argv) {
 
             sprintf(nombre_fichero, "%sprueba.dat", nombre_directorio);
 
-            mi_creat(nombre_fichero, 6);
+            if(mi_creat(nombre_fichero, 6) == ERROR_EXIT) {
+                fprintf(
+                    stderr, 
+                    "simulacion.c: no se ha podido crear el fichero de nombre %s", 
+                    nombre_fichero);
+                bumount();
+                exit(1);
+            }
 
             srand(time(NULL) + getpid());
 
             for(int j = 1; j <= NUMESCRITURAS; j++) {
+                struct REGISTRO registro;
+
                 registro.fecha = time(NULL);
                 registro.nEscritura = j;
                 registro.pid = getpid();
                 registro.nRegistro = rand() % REGMAX;
+
+                #if DEBUG12
+                    fprintf(
+                        stderr, 
+                        "[simulacion.c -> Escribiendo registro con PID %d,"
+                        "nEscritura %d, nRegistro %d, fecha %s\n",
+                        registro.pid,
+                        registro.nEscritura,
+                        registro.nRegistro,
+                        asctime(localtime(&registro.fecha))
+                    );
+                #endif
 
                 if(mi_write(
                     nombre_fichero, 
@@ -76,7 +102,7 @@ int main(int argc, char** argv) {
                     registro.nRegistro * sizeof(struct REGISTRO), 
                     sizeof(struct REGISTRO)) == ERROR_EXIT) {
 
-                    return 1;
+                    exit(1);
                 }
 
                 #if DEBUG12
@@ -93,8 +119,6 @@ int main(int argc, char** argv) {
             exit(0);        
 
         }
-
-
 
         usleep(150000);
     }
