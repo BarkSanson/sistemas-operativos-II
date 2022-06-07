@@ -23,4 +23,7 @@ directorios no vacíos. Para eliminar ficheros, existe el programa mi_rm.
     ficheros ejecutables.
 - **mi_write() y mi_read()**: se ha utilizado una mini caché de dos posiciónes.
 La caché consiste en un array del struct UltimaEntrada. La primera posición
-del array es para las lecturas, y la segunda para las escrituras
+del array es para las lecturas, y la segunda para las escrituras. 
+- **bloques.c**: se ha implementado la funcionalidad para mapear en memoria
+- **mi_write_f() y mi_read_f()**: se ha implementado la granularidad de las secciones
+críticas

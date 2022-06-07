@@ -844,6 +844,8 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     int ptr_nivel[3];
     int indices[3];
     int liberados = 0;
+    int num_breads = 0;
+    int num_bwrites = 0;
 
     //Si no hay nada en ese inodo no hay bloques a liberar
     if(inodo->tamEnBytesLog == 0){
@@ -884,6 +886,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
                     __LINE__);
                     return ERROR_EXIT;
                 }
+                num_breads++;
             }
             ptr_nivel[nivel_punteros - 1] = ptr;
             indices[nivel_punteros - 1] = indice;
@@ -932,6 +935,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
                             ptr,
                             __LINE__);
                         }
+                        num_bwrites++;
                         nivel_punteros = nRangoBL + 1;
                     }
                 }
@@ -941,7 +945,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     }
 
     #if DEBUG6
-        fprintf(stderr, "[liberar_bloques_inodo() -> Total bloques liberados: %d\n", liberados);
+        fprintf(stderr, "[liberar_bloques_inodo() -> Total bloques liberados: %d, Total breads: %d, Total bwrites: %d\n", liberados, num_breads, num_bwrites);
     #endif
 
     return liberados;
