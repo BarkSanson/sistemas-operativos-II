@@ -7,7 +7,7 @@
 
 void mostrar_stat(struct STAT* stat) {
     fprintf(stderr, "stat.tamEnBytesLog = %d\n", stat->tamEnBytesLog);
-    fprintf(stderr, "stat.numBloquesOcupados = %d XD LOL\n", stat->numBloquesOcupados);
+    fprintf(stderr, "stat.numBloquesOcupados = %d\n", stat->numBloquesOcupados);
 }
 
 int main(int argc, char** argv) {
